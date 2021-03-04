@@ -12,6 +12,7 @@ import java.util.Set;
 import com.ib.client.*;
 import com.stock.core.util.RedisUtil;
 import com.stock.vo.DepthLineVO;
+import com.stock.vo.HistoryBarVO;
 import com.stock.vo.MktData;
 import com.stock.cache.DataMap;
 import com.stock.vo.TickerVO;
@@ -277,14 +278,35 @@ public class EWrapperImpl implements EWrapper {
 	//! [historicaldata]
 	@Override
 	public void historicalData(int reqId, Bar bar) {
-//		System.out.println("HistoricalData. "+reqId+" - Date: "+bar.time()+", Open: "+bar.open()+", High: "+bar.high()+", Low: "+bar.low()+", Close: "+bar.close()+", Volume: "+bar.volume()+", Count: "+bar.count()+", WAP: "+bar.wap());
+		//System.out.println("HistoricalData. "+reqId+" - Date: "+bar.time()+", Open: "+bar.open()+", High: "+bar.high()+", Low: "+bar.low()+", Close: "+bar.close()+", Volume: "+bar.volume()+", Count: "+bar.count()+", WAP: "+bar.wap());
+		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		if(ticker ==null){
+			return;
+		}
+		HistoryBarVO vo = new HistoryBarVO();
+		vo.setTime(bar.time());
+		vo.setOpen(bar.open());
+		vo.setHigh(bar.high());
+		vo.setLow(bar.low());
+		vo.setClose(bar.close());
+		vo.setVolume(bar.volume());
+		vo.setCount(bar.count());
+		vo.setWap(bar.wap());
+		ticker.getHistory().getBars().add(vo);
 	}
 	//! [historicaldata]
 	
 	//! [historicaldataend]
 	@Override
 	public void historicalDataEnd(int reqId, String startDateStr, String endDateStr) {
-//		System.out.println("HistoricalDataEnd. "+reqId+" - Start Date: "+startDateStr+", End Date: "+endDateStr);
+		//System.out.println("HistoricalDataEnd. "+reqId+" - Start Date: "+startDateStr+", End Date: "+endDateStr);
+		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		if(ticker ==null){
+			return;
+		}
+		ticker.getHistory().setEndDate(endDateStr);
+		ticker.getHistory().setStartDate(startDateStr);
+		ticker.setResult(true);
 	}
 	//! [historicaldataend]
 	
