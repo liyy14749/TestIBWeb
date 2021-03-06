@@ -133,7 +133,8 @@ public class EWrapperImpl implements EWrapper {
 	//! [openorderend]
 	@Override
 	public void openOrderEnd() {
-//		System.out.println("OpenOrderEnd");
+		System.out.println("OpenOrderEnd");
+		DataMap.reqOpenOrders.set(false);
 	}
 	//! [openorderend]
 

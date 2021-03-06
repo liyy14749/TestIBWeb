@@ -48,6 +48,13 @@ public class DataController {
         return orderServiceImpl.placeOrder(req);
     }
 
+    @ApiOperation(value = "取消订单")
+    @PostMapping("/cancelOrder")
+    @LogPoint
+    public Result cancelOrder(@RequestBody PlaceOrderReq req){
+        return orderServiceImpl.cancelOrder(req);
+    }
+
     @ApiOperation(value = "查询下个可用订单id")
     @PostMapping("/reqOrderId")
     @LogPoint

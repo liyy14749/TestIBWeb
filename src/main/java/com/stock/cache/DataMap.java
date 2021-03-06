@@ -22,6 +22,7 @@ public class DataMap {
     public static Map<Integer, TickerOrderVO> tickerOrderCache = new ConcurrentHashMap<>();
     public static Map<Integer, OrderState> orderCache = new ConcurrentHashMap<>();
     public static int nextOrderId = -1;
+    public static AtomicBoolean reqOpenOrders = new AtomicBoolean(false);
 
     public static List<ContractVO> initContract = new ArrayList<>();
     static {
