@@ -48,7 +48,7 @@ public class DataController {
         return orderServiceImpl.placeOrder(req);
     }
 
-    @ApiOperation(value = "下订单")
+    @ApiOperation(value = "查询下个可用订单id")
     @PostMapping("/reqOrderId")
     @LogPoint
     public Result reqOrderId(){
