@@ -11,11 +11,8 @@ import java.util.Set;
 
 import com.ib.client.*;
 import com.stock.core.util.RedisUtil;
-import com.stock.vo.DepthLineVO;
-import com.stock.vo.HistoryBarVO;
-import com.stock.vo.MktData;
+import com.stock.vo.*;
 import com.stock.cache.DataMap;
-import com.stock.vo.TickerVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,20 +93,6 @@ public class EWrapperImpl implements EWrapper {
 	public void updateMktDepth(int tickerId, int position, int operation,
 							   int side, double price, int size) {
 		System.out.println("UpdateMarketDepth. "+tickerId+" - Position: "+position+", Operation: "+operation+", Side: "+side+", Price: "+price+", Size: "+size+"");
-
-		TickerVO ticker = DataMap.tickerCache.get(tickerId);
-		if(ticker ==null){
-			return;
-		}
-		if(operation == 0){
-			redisUtil.zsetAdd("depth",ticker.getSymbol(),side,position,new DepthLineVO(price,size,position));
-		} else if(operation == 1){
-			redisUtil.zsetUpdate("depth",ticker.getSymbol(),side,position,new DepthLineVO(price,size,position));
-		} else if(operation == 2){
-			redisUtil.zsetRemove("depth",ticker.getSymbol(),side,position);
-		}
-		redisUtil.hashPut("market",ticker.getSymbol(),"T",System.currentTimeMillis());
-
 	}
 	//! [updatemktdepth]
 
@@ -120,7 +103,40 @@ public class EWrapperImpl implements EWrapper {
 		System.out.println("UpdateMarketDepthL2. "+tickerId+" - Position: "+position+", Operation: "+operation+", Side: "+side+", Price: "+price+", Size: "+size+", isSmartDepth: "+isSmartDepth);
 	}
 	//! [updatemktdepthl2]
-	
+
+	//! [orderstatus]
+	@Override
+	public void orderStatus(int orderId, String status, double filled,
+							double remaining, double avgFillPrice, int permId, int parentId,
+							double lastFillPrice, int clientId, String whyHeld, double mktCapPrice) {
+		System.out.println("OrderStatus. Id: "+orderId+", Status: "+status+", Filled"+filled+", Remaining: "+remaining
+                +", AvgFillPrice: "+avgFillPrice+", PermId: "+permId+", ParentId: "+parentId+", LastFillPrice: "+lastFillPrice+
+                ", ClientId: "+clientId+", WhyHeld: "+whyHeld+", MktCapPrice: "+mktCapPrice);
+	}
+	//! [orderstatus]
+
+	//! [openorder]
+	@Override
+	public void openOrder(int orderId, Contract contract, Order order,
+						  OrderState orderState) {
+		System.out.println(EWrapperMsgGenerator.openOrder(orderId, contract, order, orderState));
+		DataMap.orderCache.put(orderId,orderState);
+		TickerOrderVO ticker = DataMap.tickerOrderCache.get(orderId);
+		if(ticker ==null || ticker.getCountDown()==null){
+			return;
+		}
+		ticker.setResult(true);
+		ticker.getCountDown().countDown();
+	}
+	//! [openorder]
+
+	//! [openorderend]
+	@Override
+	public void openOrderEnd() {
+//		System.out.println("OpenOrderEnd");
+	}
+	//! [openorderend]
+
 	//! [tickoptioncomputation]
 	@Override
 	public void tickOptionComputation(int tickerId, int field,
@@ -154,32 +170,7 @@ public class EWrapperImpl implements EWrapper {
 //			formattedBasisPoints+", ImpliedFuture: "+impliedFuture+", HoldDays: "+holdDays+", FutureLastTradeDate: "+futureLastTradeDate+
 //			", DividendImpact: "+dividendImpact+", DividendsToLastTradeDate: "+dividendsToLastTradeDate);
 	}
-	//! [orderstatus]
-	@Override
-	public void orderStatus(int orderId, String status, double filled,
-			double remaining, double avgFillPrice, int permId, int parentId,
-			double lastFillPrice, int clientId, String whyHeld, double mktCapPrice) {
-//		System.out.println("OrderStatus. Id: "+orderId+", Status: "+status+", Filled"+filled+", Remaining: "+remaining
-//                +", AvgFillPrice: "+avgFillPrice+", PermId: "+permId+", ParentId: "+parentId+", LastFillPrice: "+lastFillPrice+
-//                ", ClientId: "+clientId+", WhyHeld: "+whyHeld+", MktCapPrice: "+mktCapPrice);
-	}
-	//! [orderstatus]
-	
-	//! [openorder]
-	@Override
-	public void openOrder(int orderId, Contract contract, Order order,
-			OrderState orderState) {
-//		System.out.println(EWrapperMsgGenerator.openOrder(orderId, contract, order, orderState));
-	}
-	//! [openorder]
-	
-	//! [openorderend]
-	@Override
-	public void openOrderEnd() {
-//		System.out.println("OpenOrderEnd");
-	}
-	//! [openorderend]
-	
+
 	//! [updateaccountvalue]
 	@Override
 	public void updateAccountValue(String key, String value, String currency,
@@ -216,8 +207,8 @@ public class EWrapperImpl implements EWrapper {
 	//! [nextvalidid]
 	@Override
 	public void nextValidId(int orderId) {
-//		System.out.println("Next Valid Id: ["+orderId+"]");
-//		currentOrderId = orderId;
+		System.out.println("Next Valid Id: ["+orderId+"]");
+		DataMap.nextOrderId = orderId;
 	}
 	//! [nextvalidid]
 	
@@ -301,12 +292,13 @@ public class EWrapperImpl implements EWrapper {
 	public void historicalDataEnd(int reqId, String startDateStr, String endDateStr) {
 		//System.out.println("HistoricalDataEnd. "+reqId+" - Start Date: "+startDateStr+", End Date: "+endDateStr);
 		TickerVO ticker = DataMap.tickerCache.get(reqId);
-		if(ticker ==null){
+		if(ticker ==null || ticker.getCountDown()== null){
 			return;
 		}
 		ticker.getHistory().setEndDate(endDateStr);
 		ticker.getHistory().setStartDate(startDateStr);
 		ticker.setResult(true);
+		ticker.getCountDown().countDown();
 	}
 	//! [historicaldataend]
 	
@@ -451,6 +443,22 @@ public class EWrapperImpl implements EWrapper {
 	@Override
 	public void error(int id, int errorCode, String errorMsg) {
 		System.out.println("Error. Id: " + id + ", Code: " + errorCode + ", Msg: " + errorMsg + "\n");
+		TickerOrderVO ticker = DataMap.tickerOrderCache.get(id);
+		if(ticker !=null && ticker.getCountDown()!=null){
+			ticker.setErrorCode(errorCode);
+			ticker.setErrorMsg(errorMsg);
+			ticker.setResult(true);
+			ticker.getCountDown().countDown();
+			return;
+		}
+		TickerVO tickerVO = DataMap.tickerCache.get(id);
+		if(tickerVO !=null && tickerVO.getCountDown()!=null){
+			tickerVO.setErrorCode(errorCode);
+			tickerVO.setErrorMsg(errorMsg);
+			tickerVO.setResult(true);
+			tickerVO.getCountDown().countDown();
+			return;
+		}
 	}
 	//! [error]
 	@Override

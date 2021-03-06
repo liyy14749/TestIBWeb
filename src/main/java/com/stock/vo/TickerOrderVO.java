@@ -1,10 +1,11 @@
 package com.stock.vo;
 
 import lombok.Data;
+
 import java.util.concurrent.CountDownLatch;
 
 @Data
-public class TickerVO {
+public class TickerOrderVO {
     private int tickerId;
     private String symbol;
     private boolean result;
@@ -13,7 +14,7 @@ public class TickerVO {
     private HistoryVO history;
     private CountDownLatch countDown;
 
-    public TickerVO(int tickerId, String symbol) {
+    public TickerOrderVO(int tickerId, String symbol) {
         this.tickerId = tickerId;
         this.symbol = symbol;
     }

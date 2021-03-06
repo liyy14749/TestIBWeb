@@ -2,22 +2,20 @@
  * and conditions of the IB API Non-Commercial License or the IB API Commercial License, as applicable. */
 
 package com.stock;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
-import com.ib.client.*;
-import com.stock.cache.DataMap;
-import com.stock.contracts.ContractSamples;
-import com.stock.vo.ContractVO;
-import com.stock.vo.TickerVO;
+import com.ib.client.EClientSocket;
+import com.ib.client.EReader;
+import com.ib.client.EReaderSignal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SocketTask {
 
 	private static Logger log = LoggerFactory.getLogger(SocketTask.class);
 
-    public static int tickerId;
+    public static AtomicInteger tickerId = new AtomicInteger(0);
 
     public static EClientSocket clientSocket;
 

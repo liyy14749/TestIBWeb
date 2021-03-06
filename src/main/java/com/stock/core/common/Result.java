@@ -19,7 +19,7 @@ public class Result extends HashMap<String, Object> implements java.io.Serializa
 	 */
 	private static final long serialVersionUID = 1L;
 	public Result() {
-		this.put("code", 200);
+		this.put("code", 0);
 		this.put("msg", "SUCCESS");
 	}
 	public Result(int code,String msg){
@@ -83,11 +83,11 @@ public class Result extends HashMap<String, Object> implements java.io.Serializa
 	}
 	
     public static Object badArgument() {
-        return fail(401, "param cannot is null");
+        return fail(1, "param cannot is null");
     }
 
     public static Object badArgumentValue() {
-        return fail(402, "param cannot is null");
+        return fail(1, "param cannot is null");
     }
 
     public static Object unlogin() {

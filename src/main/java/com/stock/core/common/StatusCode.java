@@ -21,7 +21,11 @@ public class StatusCode {
     /**
      * 参数错误
      */
-    public static final int PARAM_ERROR = 401;
+    public static final int PARAM_ERROR = 1;
+    /**
+     * 超时
+     */
+    public static final int TIME_OUT = 2;
     /**
      * 验证码错误
      */
