@@ -6,10 +6,8 @@ package com.stock;
 import com.ib.client.*;
 import com.stock.cache.DataMap;
 import com.stock.core.util.RedisUtil;
-import com.stock.vo.ContractDetailsVO;
-import com.stock.vo.HistoryBarVO;
-import com.stock.vo.TickerOrderVO;
-import com.stock.vo.TickerVO;
+import com.stock.vo.*;
+import com.stock.vo.rsp.PnlRsp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -401,14 +399,29 @@ public class EWrapperImpl implements EWrapper {
 	@Override
 	public void accountSummary(int reqId, String account, String tag,
 			String value, String currency) {
-//		System.out.println("Acct Summary. ReqId: " + reqId + ", Acct: " + account + ", Tag: " + tag + ", Value: " + value + ", Currency: " + currency);
+		System.out.println("Acct Summary. ReqId: " + reqId + ", Acct: " + account + ", Tag: " + tag + ", Value: " + value + ", Currency: " + currency);
+		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		if(ticker ==null || ticker.getAccountSummary() == null){
+			return;
+		}
+		AccountSummaryVO vo = new AccountSummaryVO();
+		vo.setTag(tag);
+		vo.setValue(value);
+		vo.setCurrency(currency);
+		ticker.getAccountSummary().getSummarys().add(vo);
+		ticker.getAccountSummary().setAccount(account);
 	}
 	//! [accountsummary]
 	
 	//! [accountsummaryend]
 	@Override
 	public void accountSummaryEnd(int reqId) {
-//		System.out.println("AccountSummaryEnd. Req Id: "+reqId+"\n");
+		System.out.println("AccountSummaryEnd. Req Id: "+reqId+"\n");
+		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		if(ticker ==null || ticker.getCountDown()== null){
+			return;
+		}
+		ticker.getCountDown().countDown();
 	}
 	//! [accountsummaryend]
 	@Override
@@ -493,6 +506,15 @@ public class EWrapperImpl implements EWrapper {
 	public void positionMulti(int reqId, String account, String modelCode,
 			Contract contract, double pos, double avgCost) {
 		System.out.println("Position Multi. Request: " + reqId + ", Account: " + account + ", ModelCode: " + modelCode + ", Symbol: " + contract.symbol() + ", SecType: " + contract.secType() + ", Currency: " + contract.currency() + ", Position: " + pos + ", Avg cost: " + avgCost + "\n");
+		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		if(ticker ==null || ticker.getPositions() == null){
+			return;
+		}
+		PositionVO vo = new PositionVO();
+		vo.setAccount(account);
+		vo.setModelCode(modelCode);
+		vo.setContract(new ContractVO().parseContract(contract));
+		ticker.getPositions().add(vo);
 	}
 	//! [positionmulti]
 	
@@ -500,6 +522,12 @@ public class EWrapperImpl implements EWrapper {
 	@Override
 	public void positionMultiEnd(int reqId) {
 		System.out.println("Position Multi End. Request: " + reqId + "\n");
+		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		if(ticker ==null || ticker.getCountDown()== null){
+			return;
+		}
+		ticker.setFinish(true);
+		ticker.getCountDown().countDown();
 	}
 	//! [positionmultiend]
 	
@@ -700,6 +728,16 @@ public class EWrapperImpl implements EWrapper {
     @Override
     public void pnl(int reqId, double dailyPnL, double unrealizedPnL, double realizedPnL) {
         System.out.println(EWrapperMsgGenerator.pnl(reqId, dailyPnL, unrealizedPnL, realizedPnL));
+		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		if(ticker ==null || ticker.getCountDown()== null){
+			return;
+		}
+		PnlRsp pnl = new PnlRsp();
+		pnl.setDailyPnL(dailyPnL);
+		pnl.setUnrealizedPnL(unrealizedPnL);
+		pnl.setRealizedPnL(realizedPnL);
+		ticker.setPnl(pnl);
+		ticker.getCountDown().countDown();
     }
     //! [pnl]
 	

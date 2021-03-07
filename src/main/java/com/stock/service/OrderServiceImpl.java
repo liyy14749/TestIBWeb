@@ -74,17 +74,18 @@ public class OrderServiceImpl {
             tickerVO.getCountDown().await(CommonConstants.ORDER_TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             log.error("placeOrder timeout");
-            return Result.fail(StatusCode.TIME_OUT,"timeout");
         }
         DataMap.tickerOrderCache.remove(tid);
-        if(tickerVO.getErrorCode() == 0){
+        if(tickerVO.getErrorCode() == 0 && DataMap.orderCache.get(req.getUniqueId())!= null){
             Result result = new Result();
             if(DataMap.orderCache.get(req.getUniqueId())!=null){
                 result.put("status", DataMap.orderCache.get(req.getUniqueId()).getStatus());
             }
             return result;
+        } else if(tickerVO.getErrorCode() != 0){
+            return Result.fail(tickerVO.getErrorCode(),tickerVO.getErrorMsg());
         }
-        return Result.fail(tickerVO.getErrorCode(),tickerVO.getErrorMsg());
+        return Result.fail(StatusCode.TIME_OUT,"timeout");
     }
 
     private void reqOpenOrders(){
@@ -116,15 +117,16 @@ public class OrderServiceImpl {
             tickerVO.getCountDown().await(CommonConstants.SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             log.error("placeOrder timeout");
-            return Result.fail(StatusCode.TIME_OUT,"timeout");
         }
         DataMap.tickerOrderCache.remove(tid);
-        if(tickerVO.getErrorCode() == 0){
+        if(tickerVO.getErrorCode() == 0 && DataMap.orderCache.get(req.getUniqueId())!=null){
             Result result = new Result();
             result.put("status", DataMap.orderCache.get(req.getUniqueId()).getStatus());
             return result;
+        } else if(tickerVO.getErrorCode() != 0){
+            return Result.fail(tickerVO.getErrorCode(),tickerVO.getErrorMsg());
         }
-        return Result.fail(tickerVO.getErrorCode(),tickerVO.getErrorMsg());
+        return Result.fail(StatusCode.TIME_OUT,"timeout");
     }
 
     public Result orderStatus(PlaceOrderReq req) {
@@ -158,15 +160,16 @@ public class OrderServiceImpl {
             tickerVO.getCountDown().await(CommonConstants.SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             log.error("reqContractDetails timeout");
-            return Result.fail(StatusCode.TIME_OUT,"timeout");
         }
         DataMap.tickerCache.remove(tid);
-        if(tickerVO.getErrorCode() == 0){
+        if(tickerVO.getErrorCode() == 0 && details.size()>0){
             Result result = new Result();
             result.put("contractDetails",tickerVO.getContractDetails());
             return result;
+        } else if(tickerVO.getErrorCode() != 0){
+            return Result.fail(tickerVO.getErrorCode(),tickerVO.getErrorMsg());
         }
-        return Result.fail(tickerVO.getErrorCode(),tickerVO.getErrorMsg());
+        return Result.fail(StatusCode.TIME_OUT,"timeout");
     }
 }
 

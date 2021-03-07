@@ -1,6 +1,7 @@
 package com.stock.vo;
 
-import com.ib.client.ContractDetails;
+import com.stock.vo.rsp.AccountSummaryRsp;
+import com.stock.vo.rsp.PnlRsp;
 import lombok.Data;
 
 import java.util.List;
@@ -15,6 +16,14 @@ public class TickerVO {
     private HistoryVO history;
     private CountDownLatch countDown;
     private List<ContractDetailsVO> contractDetails;
+    private AccountSummaryRsp accountSummary;
+    private PnlRsp pnl;
+    private List<PositionVO> positions;
+    private boolean finish = false;
+
+    public TickerVO(int tickerId) {
+        this.tickerId = tickerId;
+    }
 
     public TickerVO(int tickerId, String symbol) {
         this.tickerId = tickerId;

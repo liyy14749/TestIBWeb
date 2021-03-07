@@ -43,4 +43,15 @@ public class ContractVO {
         contract.lastTradeDateOrContractMonth(lastTradeDateOrContractMonth);
         return contract;
     }
+
+    public ContractVO parseContract(Contract contract){
+        ContractVO vo = new ContractVO();
+        vo.setSymbol(contract.symbol());
+        vo.setSecType(contract.getSecType());
+        vo.setExchange(contract.exchange());
+        vo.setCurrency(contract.currency());
+        vo.setConid(contract.conid());
+        vo.setPrimaryExch(contract.primaryExch());
+        return vo;
+    }
 }

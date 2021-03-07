@@ -68,15 +68,16 @@ public class HistoryServiceImpl {
             tickerVO.getCountDown().await(CommonConstants.SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             log.error("reqHistoricalData timeout");
-            return Result.fail(StatusCode.TIME_OUT,"timeout");
         }
         DataMap.tickerCache.remove(tid);
-        if(tickerVO.getErrorCode() == 0){
+        if(tickerVO.getErrorCode() == 0 && his.getBars().size()!=0){
             Result result = new Result();
             result.put("history",tickerVO.getHistory());
             return result;
+        } else if(tickerVO.getErrorCode() != 0){
+            return Result.fail(tickerVO.getErrorCode(),tickerVO.getErrorMsg());
         }
-        return Result.fail(tickerVO.getErrorCode(),tickerVO.getErrorMsg());
+        return Result.fail(StatusCode.TIME_OUT,"timeout");
     }
 }
 
