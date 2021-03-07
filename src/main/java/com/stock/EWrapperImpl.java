@@ -3,20 +3,23 @@
 
 package com.stock;
 
+import com.ib.client.*;
+import com.stock.cache.DataMap;
+import com.stock.core.util.RedisUtil;
+import com.stock.vo.ContractDetailsVO;
+import com.stock.vo.HistoryBarVO;
+import com.stock.vo.TickerOrderVO;
+import com.stock.vo.TickerVO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import com.ib.client.*;
-import com.stock.core.util.RedisUtil;
-import com.stock.vo.*;
-import com.stock.cache.DataMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Service
 public class EWrapperImpl implements EWrapper {
@@ -129,6 +132,31 @@ public class EWrapperImpl implements EWrapper {
 		ticker.getCountDown().countDown();
 	}
 	//! [openorder]
+	@Override
+	public void contractDetails(int reqId, ContractDetails contractDetails) {
+		System.out.println(EWrapperMsgGenerator.contractDetails(reqId, contractDetails));
+		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		if(ticker ==null){
+			return;
+		}
+		ContractDetailsVO vo = new ContractDetailsVO();
+		vo.setContractDetails(contractDetails);
+		ticker.getContractDetails().add(vo);
+	}
+	@Override
+	public void contractDetailsEnd(int reqId) {
+		System.out.println("ContractDetailsEnd. "+reqId+"\n");
+		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		if(ticker ==null || ticker.getCountDown()== null){
+			return;
+		}
+		ticker.getCountDown().countDown();
+	}
+
+	@Override
+	public void bondContractDetails(int reqId, ContractDetails contractDetails) {
+		System.out.println(EWrapperMsgGenerator.bondContractDetails(reqId, contractDetails));
+	}
 
 	//! [openorderend]
 	@Override
@@ -213,21 +241,6 @@ public class EWrapperImpl implements EWrapper {
 	}
 	//! [nextvalidid]
 	
-	//! [contractdetails]
-	@Override
-	public void contractDetails(int reqId, ContractDetails contractDetails) {
-//		System.out.println(EWrapperMsgGenerator.contractDetails(reqId, contractDetails));
-	}
-	//! [contractdetails]
-	@Override
-	public void bondContractDetails(int reqId, ContractDetails contractDetails) {
-//		System.out.println(EWrapperMsgGenerator.bondContractDetails(reqId, contractDetails));
-	}
-	//! [contractdetailsend]
-	@Override
-	public void contractDetailsEnd(int reqId) {
-//		System.out.println("ContractDetailsEnd. "+reqId+"\n");
-	}
 	//! [contractdetailsend]
 	
 	//! [execdetails]
@@ -298,7 +311,6 @@ public class EWrapperImpl implements EWrapper {
 		}
 		ticker.getHistory().setEndDate(endDateStr);
 		ticker.getHistory().setStartDate(startDateStr);
-		ticker.setResult(true);
 		ticker.getCountDown().countDown();
 	}
 	//! [historicaldataend]
@@ -456,7 +468,6 @@ public class EWrapperImpl implements EWrapper {
 		if(tickerVO !=null && tickerVO.getCountDown()!=null){
 			tickerVO.setErrorCode(errorCode);
 			tickerVO.setErrorMsg(errorMsg);
-			tickerVO.setResult(true);
 			tickerVO.getCountDown().countDown();
 			return;
 		}

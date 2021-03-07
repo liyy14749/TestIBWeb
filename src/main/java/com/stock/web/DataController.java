@@ -1,6 +1,8 @@
 package com.stock.web;
 
 
+import com.alibaba.fastjson.JSON;
+import com.ib.client.ContractDetails;
 import com.stock.core.annotation.LogPoint;
 import com.stock.core.common.Result;
 import com.stock.core.common.StatusCode;
@@ -11,10 +13,7 @@ import com.stock.vo.req.HistoricalDataReq;
 import com.stock.vo.req.PlaceOrderReq;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -68,4 +67,23 @@ public class DataController {
     public Result orderStatus(@RequestBody PlaceOrderReq req){
         return orderServiceImpl.orderStatus(req);
     }
+
+    @ApiOperation(value = "订单详情")
+    @PostMapping("/reqContractDetails")
+    @LogPoint
+    public Result reqContractDetails(@RequestBody ContractVO req){
+        return orderServiceImpl.reqContractDetails(req);
+    }
+
+    /*@ApiOperation(value = "订单详情")
+    @PostMapping("/constractTest")
+    @LogPoint
+    public Result constractTest(@RequestBody ContractVO req){
+        Result result = new Result();
+        ContractDetails d = new ContractDetails();
+        d.bondType("a");
+        System.out.println(JSON.toJSONString(d));
+        result.put("constract",d);
+        return result;
+    }*/
 }

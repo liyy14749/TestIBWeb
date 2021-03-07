@@ -17,5 +17,21 @@ public class AssertUtil {
 			}
 		}
 	}
-	
+	public static void validateAllEmpty(String fieldName,Object ...fields) {
+		boolean allEmpty = true;
+		for(Object field:fields){
+			if(field instanceof String) {
+				if(StringUtils.isNotBlank((String)field)) {
+					allEmpty = false;
+				}
+			} else {
+				if(field != null) {
+					allEmpty = false;
+				}
+			}
+		}
+		if(allEmpty){
+			throw new BusinessException(StatusCode.PARAM_ERROR,String.format("%s can not all is empty", fieldName));
+		}
+	}
 }

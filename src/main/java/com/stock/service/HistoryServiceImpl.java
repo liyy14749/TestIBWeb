@@ -3,6 +3,7 @@ package com.stock.service;
 import com.ib.client.Contract;
 import com.stock.SocketTask;
 import com.stock.cache.DataMap;
+import com.stock.constants.CommonConstants;
 import com.stock.core.common.Result;
 import com.stock.core.common.StatusCode;
 import com.stock.core.util.AssertUtil;
@@ -14,9 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -63,7 +62,7 @@ public class HistoryServiceImpl {
         SocketTask.clientSocket.reqHistoricalData(tid, contract,
                 req.getEndDateTime(), req.getDurationStr(), req.getBarSizeSetting(), req.getWhatToShow(), 1, 1, false, null);
         try {
-            tickerVO.getCountDown().await(3, TimeUnit.SECONDS);
+            tickerVO.getCountDown().await(CommonConstants.SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             log.error("reqHistoricalData timeout");
             return Result.fail(StatusCode.TIME_OUT,"timeout");
