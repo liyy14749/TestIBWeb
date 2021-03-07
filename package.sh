@@ -1,6 +1,6 @@
 #!/bin/bash
 git pull
-mvn install -Dmaven.test.skip=true
+mvn clean install -Dmaven.test.skip=true
 dirname=$1
 if [ x"$1" = x ]; then
   dirname='prod'

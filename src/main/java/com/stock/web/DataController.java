@@ -75,15 +75,4 @@ public class DataController {
         return orderServiceImpl.reqContractDetails(req);
     }
 
-    /*@ApiOperation(value = "订单详情")
-    @PostMapping("/constractTest")
-    @LogPoint
-    public Result constractTest(@RequestBody ContractVO req){
-        Result result = new Result();
-        ContractDetails d = new ContractDetails();
-        d.bondType("a");
-        System.out.println(JSON.toJSONString(d));
-        result.put("constract",d);
-        return result;
-    }*/
 }
