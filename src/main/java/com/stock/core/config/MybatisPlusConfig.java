@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
 
-@Configuration
+//@Configuration
 public class MybatisPlusConfig {
    /*
     * 分页插件，自动识别数据库类型

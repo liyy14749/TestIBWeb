@@ -13,6 +13,7 @@ import com.stock.vo.TickerVO;
 import com.stock.vo.req.HistoricalDataReq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,6 +30,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class HistoryServiceImpl {
+    @Autowired
+    SocketTask socketTask;
 
     private static Logger log = LoggerFactory.getLogger(HistoryServiceImpl.class);
 
@@ -59,7 +62,7 @@ public class HistoryServiceImpl {
         tickerVO.setHistory(his);
         tickerVO.setCountDown(new CountDownLatch(1));
         DataMap.tickerCache.put(tid,tickerVO);
-        SocketTask.clientSocket.reqHistoricalData(tid, contract,
+        socketTask.getClientSocket().reqHistoricalData(tid, contract,
                 req.getEndDateTime(), req.getDurationStr(), req.getBarSizeSetting(), req.getWhatToShow(), 1, 1, false, null);
         try {
             tickerVO.getCountDown().await(CommonConstants.SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);

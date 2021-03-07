@@ -15,6 +15,7 @@ import com.stock.vo.TickerVO;
 import com.stock.vo.req.PlaceOrderReq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -32,6 +33,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class OrderServiceImpl {
+
+    @Autowired SocketTask socketTask;
 
     private static Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
@@ -65,7 +68,7 @@ public class OrderServiceImpl {
         TickerOrderVO tickerVO = new TickerOrderVO(tid,req.getContract().getSymbol());
         tickerVO.setCountDown(new CountDownLatch(1));
         DataMap.tickerOrderCache.put(tid,tickerVO);
-        SocketTask.clientSocket.placeOrder(tid, contract, order);
+        socketTask.getClientSocket().placeOrder(tid, contract, order);
         reqOpenOrders();
         try {
             tickerVO.getCountDown().await(CommonConstants.ORDER_TIMEOUT, TimeUnit.MILLISECONDS);
@@ -94,7 +97,7 @@ public class OrderServiceImpl {
                     log.error("reqOpenOrders InterruptedException");
                 }
                 if(!DataMap.reqOpenOrders.getAndSet(true)){
-                    SocketTask.clientSocket.reqOpenOrders();
+                    socketTask.getClientSocket().reqOpenOrders();
                 }
             }
         });
@@ -107,7 +110,7 @@ public class OrderServiceImpl {
         TickerOrderVO tickerVO = new TickerOrderVO(tid,req.getContract().getSymbol());
         tickerVO.setCountDown(new CountDownLatch(1));
         DataMap.tickerOrderCache.put(tid,tickerVO);
-        SocketTask.clientSocket.cancelOrder(tid);
+        socketTask.getClientSocket().cancelOrder(tid);
         reqOpenOrders();
         try {
             tickerVO.getCountDown().await(CommonConstants.SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
@@ -150,7 +153,7 @@ public class OrderServiceImpl {
         tickerVO.setContractDetails(details);
         DataMap.tickerCache.put(tid,tickerVO);
 
-        SocketTask.clientSocket.reqContractDetails(tid, req.toContract());
+        socketTask.getClientSocket().reqContractDetails(tid, req.toContract());
         try {
             tickerVO.getCountDown().await(CommonConstants.SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
