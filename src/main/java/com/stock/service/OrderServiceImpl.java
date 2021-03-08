@@ -108,7 +108,7 @@ public class OrderServiceImpl {
         AssertUtil.validateEmpty(req.getUniqueId(), "uniqueId");
 
         int tid = req.getUniqueId();
-        TickerOrderVO tickerVO = new TickerOrderVO(tid,req.getContract().getSymbol());
+        TickerOrderVO tickerVO = new TickerOrderVO(tid, null);
         tickerVO.setCountDown(new CountDownLatch(1));
         DataMap.tickerOrderCache.put(tid,tickerVO);
         socketTask.getClientSocket().cancelOrder(tid);
