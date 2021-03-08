@@ -38,8 +38,9 @@ public class SocketTask {
 		final EReaderSignal m_signal = wrapper.getSignal();
 		m_client.eConnect(ip, port, clientId);
 		final EReader reader = new EReader(m_client, m_signal);
-
-		reader.start();
+		if(m_client.isConnected()){
+			reader.start();
+		}
 		//An additional thread is created in this program design to empty the messaging queue
 		new Thread(() -> {
 			while (m_client.isConnected()) {

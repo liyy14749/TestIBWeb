@@ -52,22 +52,6 @@ public class EWrapperImpl implements EWrapper {
 	public void tickPrice(int tickerId, int field, double price, TickAttrib attribs) {
 		System.out.println("Tick Price. Ticker Id:"+tickerId+", Field: "+field+", Price: "+price+", CanAutoExecute: "+ attribs.canAutoExecute()
 		+ ", pastLimit: " + attribs.pastLimit() + ", pre-open: " + attribs.preOpen());
-		TickerVO ticker = DataMap.tickerCache.get(tickerId);
-		if(ticker ==null){
-			return;
-		}
-		if(field == 1){
-			redisUtil.hashPut("market",ticker.getSymbol(),"b",price);
-		} else if(field == 2){
-			redisUtil.hashPut("market",ticker.getSymbol(),"a",price);
-		} else if(field == 4){
-			redisUtil.hashPut("market",ticker.getSymbol(),"p",price);
-		} else if(field == 6){
-			redisUtil.hashPut("market",ticker.getSymbol(),"h",price);
-		} else if(field == 7){
-			redisUtil.hashPut("market",ticker.getSymbol(),"l",price);
-		}
-		redisUtil.hashPut("market",ticker.getSymbol(),"T",System.currentTimeMillis());
 	}
 	//! [tickprice]
 	
@@ -75,17 +59,6 @@ public class EWrapperImpl implements EWrapper {
 	@Override
 	public void tickSize(int tickerId, int field, int size) {
 		System.out.println("Tick Size. Ticker Id:" + tickerId + ", Field: " + field + ", Size: " + size);
-		TickerVO ticker = DataMap.tickerCache.get(tickerId);
-		if(ticker ==null){
-			return;
-		}
-		if(field == 0){
-			redisUtil.hashPut("market",ticker.getSymbol(),"bidSize",size);
-		} else if(field == 3){
-			redisUtil.hashPut("market",ticker.getSymbol(),"askSize",size);
-		}
-		redisUtil.hashPut("market",ticker.getSymbol(),"T",System.currentTimeMillis());
-//		System.out.println(ticker);
 	}
 	//! [ticksize]
 
@@ -469,6 +442,28 @@ public class EWrapperImpl implements EWrapper {
 	@Override
 	public void error(int id, int errorCode, String errorMsg) {
 		System.out.println("Error. Id: " + id + ", Code: " + errorCode + ", Msg: " + errorMsg + "\n");
+		if(id == -1 && (errorCode ==2104|| errorCode ==2106|| errorCode==2158)){
+			DataMap.SERVER_OK = true;
+		} else if(id == -1 && errorCode == 504){
+			DataMap.SERVER_OK = false;
+			for(Integer key:DataMap.tickerOrderCache.keySet()){
+				TickerOrderVO tickerOrderVO = DataMap.tickerOrderCache.get(key);
+				tickerOrderVO.setErrorCode(504);
+				tickerOrderVO.setErrorMsg(errorMsg);
+				if(tickerOrderVO.getCountDown()!=null){
+					tickerOrderVO.getCountDown().countDown();
+				}
+			}
+			for(Integer key:DataMap.tickerCache.keySet()){
+				TickerVO tickerVO = DataMap.tickerCache.get(key);
+				tickerVO.setErrorCode(504);
+				tickerVO.setErrorMsg(errorMsg);
+				if(tickerVO.getCountDown()!=null){
+					tickerVO.getCountDown().countDown();
+				}
+			}
+			return;
+		}
 		TickerOrderVO ticker = DataMap.tickerOrderCache.get(id);
 		if(ticker !=null && ticker.getCountDown()!=null){
 			ticker.setErrorCode(errorCode);
