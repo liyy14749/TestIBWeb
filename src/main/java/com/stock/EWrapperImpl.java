@@ -463,6 +463,8 @@ public class EWrapperImpl implements EWrapper {
 				}
 			}
 			return;
+		} else if(id == -1 && errorCode == 507){
+			DataMap.SERVER_OK = false;
 		}
 		TickerOrderVO ticker = DataMap.tickerOrderCache.get(id);
 		if(ticker !=null && ticker.getCountDown()!=null){
