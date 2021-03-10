@@ -1,18 +1,15 @@
 #!/bin/bash
 
+source ./script/config.sh
+
 echo "------------------------------ mvn install [start] ------------------------------"
 mvn clean install -Dmaven.test.skip=true
 echo "------------------------------ mvn install [end] ------------------------------"
 
 echo "------------------------------ package distribute [start] ------------------------------"
-project_root=/opt/webserver/IBWebServer
-if [ ! -d "${project_root}" ]; then
-    mkdir -p ${project_root}
-fi
+cp -f target/IBWebServer.jar ${PROJECT_NAME}
+cp -f script/*.sh ${PROJECT_NAME} && chmod +x ${PROJECT_NAME}/*.sh
 
-cp -f target/IBWebServer.jar ${project_root}
-cp -f script/*.sh ${project_root} && chmod +x ${project_root}/*.sh
-
-ls -al ${project_root}
+ls -al ${PROJECT_NAME}
 echo "------------------------------ package distribute [end] ------------------------------"
 echo "distribute success."
