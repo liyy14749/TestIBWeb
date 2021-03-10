@@ -3,14 +3,16 @@
 
 package com.stock;
 
+import com.alibaba.fastjson.JSON;
 import com.ib.client.*;
-import com.stock.cache.DataMap;
+import com.stock.cache.DataCache;
 import com.stock.core.util.RedisUtil;
 import com.stock.vo.*;
 import com.stock.vo.rsp.PnlRsp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
@@ -24,7 +26,8 @@ public class EWrapperImpl implements EWrapper {
 
 	private static Logger log = LoggerFactory.getLogger(EWrapperImpl.class);
 
-	@Autowired RedisUtil redisUtil;
+	@Autowired
+	private RedisTemplate<String, String> template;
 
 	private EReaderSignal readerSignal;
 	private EClientSocket clientSocket;
@@ -86,6 +89,21 @@ public class EWrapperImpl implements EWrapper {
 		System.out.println("OrderStatus. Id: "+orderId+", Status: "+status+", Filled"+filled+", Remaining: "+remaining
                 +", AvgFillPrice: "+avgFillPrice+", PermId: "+permId+", ParentId: "+parentId+", LastFillPrice: "+lastFillPrice+
                 ", ClientId: "+clientId+", WhyHeld: "+whyHeld+", MktCapPrice: "+mktCapPrice);
+
+		long time = System.currentTimeMillis()/1000;
+		OrderStatusVO vo = new OrderStatusVO();
+		vo.setOrderId(orderId);
+		vo.setStatus(status);
+		vo.setFilled(filled);
+		vo.setRemaining(remaining);
+		vo.setAvgFillPrice(avgFillPrice);
+		vo.setPermId(permId);
+		vo.setParentId(parentId);
+		vo.setLastFillPrice(lastFillPrice);
+		vo.setClientId(clientId);
+		vo.setWhyHeld(whyHeld);
+		vo.setMktCapPrice(mktCapPrice);
+		template.opsForZSet().add("order_msg_queue", JSON.toJSONString(vo), time);
 	}
 	//! [orderstatus]
 
@@ -94,8 +112,8 @@ public class EWrapperImpl implements EWrapper {
 	public void openOrder(int orderId, Contract contract, Order order,
 						  OrderState orderState) {
 		System.out.println(EWrapperMsgGenerator.openOrder(orderId, contract, order, orderState));
-		DataMap.orderCache.put(orderId,orderState);
-		TickerOrderVO ticker = DataMap.tickerOrderCache.get(orderId);
+		DataCache.orderCache.put(orderId,orderState);
+		TickerOrderVO ticker = DataCache.tickerOrderCache.get(orderId);
 		if(ticker ==null || ticker.getCountDown()==null){
 			return;
 		}
@@ -106,7 +124,7 @@ public class EWrapperImpl implements EWrapper {
 	@Override
 	public void contractDetails(int reqId, ContractDetails contractDetails) {
 		System.out.println(EWrapperMsgGenerator.contractDetails(reqId, contractDetails));
-		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		TickerVO ticker = DataCache.tickerCache.get(reqId);
 		if(ticker ==null){
 			return;
 		}
@@ -117,7 +135,7 @@ public class EWrapperImpl implements EWrapper {
 	@Override
 	public void contractDetailsEnd(int reqId) {
 		System.out.println("ContractDetailsEnd. "+reqId+"\n");
-		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		TickerVO ticker = DataCache.tickerCache.get(reqId);
 		if(ticker ==null || ticker.getCountDown()== null){
 			return;
 		}
@@ -133,7 +151,7 @@ public class EWrapperImpl implements EWrapper {
 	@Override
 	public void openOrderEnd() {
 		System.out.println("OpenOrderEnd");
-		DataMap.reqOpenOrders.set(false);
+		DataCache.reqOpenOrders.set(false);
 	}
 	//! [openorderend]
 
@@ -208,7 +226,7 @@ public class EWrapperImpl implements EWrapper {
 	@Override
 	public void nextValidId(int orderId) {
 		System.out.println("Next Valid Id: ["+orderId+"]");
-		DataMap.nextOrderId = orderId;
+		DataCache.nextOrderId = orderId;
 	}
 	//! [nextvalidid]
 	
@@ -255,7 +273,7 @@ public class EWrapperImpl implements EWrapper {
 	@Override
 	public void historicalData(int reqId, Bar bar) {
 		//System.out.println("HistoricalData. "+reqId+" - Date: "+bar.time()+", Open: "+bar.open()+", High: "+bar.high()+", Low: "+bar.low()+", Close: "+bar.close()+", Volume: "+bar.volume()+", Count: "+bar.count()+", WAP: "+bar.wap());
-		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		TickerVO ticker = DataCache.tickerCache.get(reqId);
 		if(ticker ==null){
 			return;
 		}
@@ -276,7 +294,7 @@ public class EWrapperImpl implements EWrapper {
 	@Override
 	public void historicalDataEnd(int reqId, String startDateStr, String endDateStr) {
 		//System.out.println("HistoricalDataEnd. "+reqId+" - Start Date: "+startDateStr+", End Date: "+endDateStr);
-		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		TickerVO ticker = DataCache.tickerCache.get(reqId);
 		if(ticker ==null || ticker.getCountDown()== null){
 			return;
 		}
@@ -373,7 +391,7 @@ public class EWrapperImpl implements EWrapper {
 	public void accountSummary(int reqId, String account, String tag,
 			String value, String currency) {
 		System.out.println("Acct Summary. ReqId: " + reqId + ", Acct: " + account + ", Tag: " + tag + ", Value: " + value + ", Currency: " + currency);
-		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		TickerVO ticker = DataCache.tickerCache.get(reqId);
 		if(ticker ==null || ticker.getAccountSummary() == null){
 			return;
 		}
@@ -390,7 +408,7 @@ public class EWrapperImpl implements EWrapper {
 	@Override
 	public void accountSummaryEnd(int reqId) {
 		System.out.println("AccountSummaryEnd. Req Id: "+reqId+"\n");
-		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		TickerVO ticker = DataCache.tickerCache.get(reqId);
 		if(ticker ==null || ticker.getCountDown()== null){
 			return;
 		}
@@ -443,19 +461,19 @@ public class EWrapperImpl implements EWrapper {
 	public void error(int id, int errorCode, String errorMsg) {
 		System.out.println("Error. Id: " + id + ", Code: " + errorCode + ", Msg: " + errorMsg + "\n");
 		if(id == -1 && (errorCode ==2104|| errorCode ==2106|| errorCode==2158)){
-			DataMap.SERVER_OK = true;
+			DataCache.SERVER_OK = true;
 		} else if(id == -1 && errorCode == 504){
-			DataMap.SERVER_OK = false;
-			for(Integer key:DataMap.tickerOrderCache.keySet()){
-				TickerOrderVO tickerOrderVO = DataMap.tickerOrderCache.get(key);
+			DataCache.SERVER_OK = false;
+			for(Integer key: DataCache.tickerOrderCache.keySet()){
+				TickerOrderVO tickerOrderVO = DataCache.tickerOrderCache.get(key);
 				tickerOrderVO.setErrorCode(504);
 				tickerOrderVO.setErrorMsg(errorMsg);
 				if(tickerOrderVO.getCountDown()!=null){
 					tickerOrderVO.getCountDown().countDown();
 				}
 			}
-			for(Integer key:DataMap.tickerCache.keySet()){
-				TickerVO tickerVO = DataMap.tickerCache.get(key);
+			for(Integer key: DataCache.tickerCache.keySet()){
+				TickerVO tickerVO = DataCache.tickerCache.get(key);
 				tickerVO.setErrorCode(504);
 				tickerVO.setErrorMsg(errorMsg);
 				if(tickerVO.getCountDown()!=null){
@@ -464,9 +482,9 @@ public class EWrapperImpl implements EWrapper {
 			}
 			return;
 		} else if(id == -1 && errorCode == 507){
-			DataMap.SERVER_OK = false;
+			DataCache.SERVER_OK = false;
 		}
-		TickerOrderVO ticker = DataMap.tickerOrderCache.get(id);
+		TickerOrderVO ticker = DataCache.tickerOrderCache.get(id);
 		if(ticker !=null && ticker.getCountDown()!=null){
 			ticker.setErrorCode(errorCode);
 			ticker.setErrorMsg(errorMsg);
@@ -474,7 +492,7 @@ public class EWrapperImpl implements EWrapper {
 			ticker.getCountDown().countDown();
 			return;
 		}
-		TickerVO tickerVO = DataMap.tickerCache.get(id);
+		TickerVO tickerVO = DataCache.tickerCache.get(id);
 		if(tickerVO !=null && tickerVO.getCountDown()!=null){
 			tickerVO.setErrorCode(errorCode);
 			tickerVO.setErrorMsg(errorMsg);
@@ -503,7 +521,7 @@ public class EWrapperImpl implements EWrapper {
 	public void positionMulti(int reqId, String account, String modelCode,
 			Contract contract, double pos, double avgCost) {
 		System.out.println("Position Multi. Request: " + reqId + ", Account: " + account + ", ModelCode: " + modelCode + ", Symbol: " + contract.symbol() + ", SecType: " + contract.secType() + ", Currency: " + contract.currency() + ", Position: " + pos + ", Avg cost: " + avgCost + "\n");
-		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		TickerVO ticker = DataCache.tickerCache.get(reqId);
 		if(ticker ==null || ticker.getPositions() == null){
 			return;
 		}
@@ -519,7 +537,7 @@ public class EWrapperImpl implements EWrapper {
 	@Override
 	public void positionMultiEnd(int reqId) {
 		System.out.println("Position Multi End. Request: " + reqId + "\n");
-		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		TickerVO ticker = DataCache.tickerCache.get(reqId);
 		if(ticker ==null || ticker.getCountDown()== null){
 			return;
 		}
@@ -725,7 +743,7 @@ public class EWrapperImpl implements EWrapper {
     @Override
     public void pnl(int reqId, double dailyPnL, double unrealizedPnL, double realizedPnL) {
         System.out.println(EWrapperMsgGenerator.pnl(reqId, dailyPnL, unrealizedPnL, realizedPnL));
-		TickerVO ticker = DataMap.tickerCache.get(reqId);
+		TickerVO ticker = DataCache.tickerCache.get(reqId);
 		if(ticker ==null || ticker.getCountDown()== null){
 			return;
 		}

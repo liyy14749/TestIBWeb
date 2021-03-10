@@ -2,7 +2,7 @@ package com.stock.service;
 
 import com.ib.client.Contract;
 import com.stock.SocketTask;
-import com.stock.cache.DataMap;
+import com.stock.cache.DataCache;
 import com.stock.constants.CommonConstants;
 import com.stock.core.common.Result;
 import com.stock.core.common.StatusCode;
@@ -61,7 +61,7 @@ public class HistoryServiceImpl {
         TickerVO tickerVO = new TickerVO(tid,vo.getSymbol());
         tickerVO.setHistory(his);
         tickerVO.setCountDown(new CountDownLatch(1));
-        DataMap.tickerCache.put(tid,tickerVO);
+        DataCache.tickerCache.put(tid,tickerVO);
         socketTask.getClientSocket().reqHistoricalData(tid, contract,
                 req.getEndDateTime(), req.getDurationStr(), req.getBarSizeSetting(), req.getWhatToShow(), 1, 1, false, null);
         try {
@@ -69,7 +69,7 @@ public class HistoryServiceImpl {
         } catch (InterruptedException e) {
             log.error("reqHistoricalData timeout");
         }
-        DataMap.tickerCache.remove(tid);
+        DataCache.tickerCache.remove(tid);
         if(tickerVO.getErrorCode() == 0 && his.getBars().size()!=0){
             Result result = new Result();
             result.put("history",tickerVO.getHistory());

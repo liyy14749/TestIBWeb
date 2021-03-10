@@ -2,7 +2,7 @@ package com.stock.service;
 
 import com.ib.client.*;
 import com.stock.SocketTask;
-import com.stock.cache.DataMap;
+import com.stock.cache.DataCache;
 import com.stock.constants.CommonConstants;
 import com.stock.core.common.Result;
 import com.stock.core.common.StatusCode;
@@ -67,7 +67,7 @@ public class OrderServiceImpl {
         int tid = req.getUniqueId();
         TickerOrderVO tickerVO = new TickerOrderVO(tid,req.getContract().getSymbol());
         tickerVO.setCountDown(new CountDownLatch(1));
-        DataMap.tickerOrderCache.put(tid,tickerVO);
+        DataCache.tickerOrderCache.put(tid,tickerVO);
         socketTask.getClientSocket().placeOrder(tid, contract, order);
         reqOpenOrders();
         try {
@@ -75,11 +75,11 @@ public class OrderServiceImpl {
         } catch (InterruptedException e) {
             log.error("placeOrder timeout");
         }
-        DataMap.tickerOrderCache.remove(tid);
-        if(tickerVO.getErrorCode() == 0 && DataMap.orderCache.get(req.getUniqueId())!= null){
+        DataCache.tickerOrderCache.remove(tid);
+        if(tickerVO.getErrorCode() == 0 && DataCache.orderCache.get(req.getUniqueId())!= null){
             Result result = new Result();
-            if(DataMap.orderCache.get(req.getUniqueId())!=null){
-                result.put("status", DataMap.orderCache.get(req.getUniqueId()).getStatus());
+            if(DataCache.orderCache.get(req.getUniqueId())!=null){
+                result.put("status", DataCache.orderCache.get(req.getUniqueId()).getStatus());
             }
             return result;
         } else if(tickerVO.getErrorCode() != 0){
@@ -97,7 +97,7 @@ public class OrderServiceImpl {
                 } catch (InterruptedException e) {
                     log.error("reqOpenOrders InterruptedException");
                 }
-                if(!DataMap.reqOpenOrders.getAndSet(true)){
+                if(!DataCache.reqOpenOrders.getAndSet(true)){
                     socketTask.getClientSocket().reqOpenOrders();
                 }
             }
@@ -110,7 +110,7 @@ public class OrderServiceImpl {
         int tid = req.getUniqueId();
         TickerOrderVO tickerVO = new TickerOrderVO(tid, null);
         tickerVO.setCountDown(new CountDownLatch(1));
-        DataMap.tickerOrderCache.put(tid,tickerVO);
+        DataCache.tickerOrderCache.put(tid,tickerVO);
         socketTask.getClientSocket().cancelOrder(tid);
         reqOpenOrders();
         try {
@@ -118,10 +118,10 @@ public class OrderServiceImpl {
         } catch (InterruptedException e) {
             log.error("placeOrder timeout");
         }
-        DataMap.tickerOrderCache.remove(tid);
-        if(tickerVO.getErrorCode() == 0 && DataMap.orderCache.get(req.getUniqueId())!=null){
+        DataCache.tickerOrderCache.remove(tid);
+        if(tickerVO.getErrorCode() == 0 && DataCache.orderCache.get(req.getUniqueId())!=null){
             Result result = new Result();
-            result.put("status", DataMap.orderCache.get(req.getUniqueId()).getStatus());
+            result.put("status", DataCache.orderCache.get(req.getUniqueId()).getStatus());
             return result;
         } else if(tickerVO.getErrorCode() != 0){
             return Result.fail(tickerVO.getErrorCode(),tickerVO.getErrorMsg());
@@ -131,7 +131,7 @@ public class OrderServiceImpl {
 
     public Result orderStatus(PlaceOrderReq req) {
         AssertUtil.validateEmpty(req.getUniqueId(), "uniqueId");
-        OrderState orderState = DataMap.orderCache.get(req.getUniqueId());
+        OrderState orderState = DataCache.orderCache.get(req.getUniqueId());
         Result result = new Result();
         if(orderState!=null){
             result.put("status",orderState.getStatus());
@@ -141,7 +141,7 @@ public class OrderServiceImpl {
 
     public Result reqOrderId() {
         Result result = new Result();
-        result.put("nextOrderId", DataMap.nextOrderId);
+        result.put("nextOrderId", DataCache.nextOrderId);
         return result;
     }
 
@@ -153,7 +153,7 @@ public class OrderServiceImpl {
         tickerVO.setCountDown(new CountDownLatch(1));
         List<ContractDetailsVO> details = new ArrayList<>();
         tickerVO.setContractDetails(details);
-        DataMap.tickerCache.put(tid,tickerVO);
+        DataCache.tickerCache.put(tid,tickerVO);
 
         socketTask.getClientSocket().reqContractDetails(tid, req.toContract());
         try {
@@ -161,7 +161,7 @@ public class OrderServiceImpl {
         } catch (InterruptedException e) {
             log.error("reqContractDetails timeout");
         }
-        DataMap.tickerCache.remove(tid);
+        DataCache.tickerCache.remove(tid);
         if(tickerVO.getErrorCode() == 0 && details.size()>0){
             Result result = new Result();
             result.put("contractDetails",tickerVO.getContractDetails());

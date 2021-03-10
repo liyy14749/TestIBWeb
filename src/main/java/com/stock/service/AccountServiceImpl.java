@@ -1,21 +1,15 @@
 package com.stock.service;
 
-import com.ib.client.Contract;
 import com.stock.SocketTask;
-import com.stock.cache.DataMap;
+import com.stock.cache.DataCache;
 import com.stock.constants.CommonConstants;
 import com.stock.core.common.Result;
 import com.stock.core.common.StatusCode;
 import com.stock.core.util.AssertUtil;
-import com.stock.vo.AccountSummaryVO;
-import com.stock.vo.ContractVO;
-import com.stock.vo.HistoryVO;
 import com.stock.vo.TickerVO;
 import com.stock.vo.req.AccountSummaryReq;
-import com.stock.vo.req.HistoricalDataReq;
 import com.stock.vo.req.PnlReq;
 import com.stock.vo.rsp.AccountSummaryRsp;
-import com.stock.vo.rsp.PnlRsp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,14 +42,14 @@ public class AccountServiceImpl {
         TickerVO tickerVO = new TickerVO(tid);
         tickerVO.setAccountSummary(new AccountSummaryRsp());
         tickerVO.setCountDown(new CountDownLatch(1));
-        DataMap.tickerCache.put(tid,tickerVO);
+        DataCache.tickerCache.put(tid,tickerVO);
         socketTask.getClientSocket().reqAccountSummary(tid, req.getGroup(), req.getTags());
         try {
             tickerVO.getCountDown().await(CommonConstants.SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             log.error("reqAccountSummary timeout");
         }
-        DataMap.tickerCache.remove(tid);
+        DataCache.tickerCache.remove(tid);
         if(tickerVO.getErrorCode() == 0 && tickerVO.getAccountSummary().getSummarys().size()>0){
             Result result = new Result();
             result.put("accountSummary",tickerVO.getAccountSummary());
@@ -72,14 +66,14 @@ public class AccountServiceImpl {
         int tid = SocketTask.tickerId.incrementAndGet();
         TickerVO tickerVO = new TickerVO(tid);
         tickerVO.setCountDown(new CountDownLatch(1));
-        DataMap.tickerCache.put(tid,tickerVO);
+        DataCache.tickerCache.put(tid,tickerVO);
         socketTask.getClientSocket().reqPnL(tid, req.getAccount(), req.getModelCode());
         try {
             tickerVO.getCountDown().await(CommonConstants.SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             log.error("reqAccountSummary timeout");
         }
-        DataMap.tickerCache.remove(tid);
+        DataCache.tickerCache.remove(tid);
         if(tickerVO.getErrorCode() == 0 && tickerVO.getPnl()!=null){
             Result result = new Result();
             result.put("pnl",tickerVO.getPnl());
@@ -97,14 +91,14 @@ public class AccountServiceImpl {
         TickerVO tickerVO = new TickerVO(tid);
         tickerVO.setPositions(new ArrayList<>());
         tickerVO.setCountDown(new CountDownLatch(1));
-        DataMap.tickerCache.put(tid,tickerVO);
+        DataCache.tickerCache.put(tid,tickerVO);
         socketTask.getClientSocket().reqPositionsMulti(tid, req.getAccount(), req.getModelCode());
         try {
             tickerVO.getCountDown().await(CommonConstants.SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             log.error("reqPositionsMulti timeout");
         }
-        DataMap.tickerCache.remove(tid);
+        DataCache.tickerCache.remove(tid);
         if(tickerVO.getErrorCode() == 0 && tickerVO.isFinish()){
             Result result = new Result();
             result.put("positions",tickerVO.getPositions());

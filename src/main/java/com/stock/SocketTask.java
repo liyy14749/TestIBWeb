@@ -6,7 +6,7 @@ package com.stock;
 import com.ib.client.EClientSocket;
 import com.ib.client.EReader;
 import com.ib.client.EReaderSignal;
-import com.stock.cache.DataMap;
+import com.stock.cache.DataCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class SocketTask {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
                 }
-                if (!DataMap.SERVER_OK) {
+                if (!DataCache.SERVER_OK) {
                 	log.info("reconnect");
                     reconnect(m_client, m_signal);
                 }

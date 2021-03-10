@@ -16,7 +16,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class DataMap {
+public class DataCache {
     public static Map<Integer, MktData> cache = new ConcurrentHashMap<>();
     public static Map<Integer, TickerVO> tickerCache = new ConcurrentHashMap<>();
     public static Map<Integer, TickerOrderVO> tickerOrderCache = new ConcurrentHashMap<>();
