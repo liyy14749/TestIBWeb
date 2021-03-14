@@ -109,6 +109,8 @@ public class OrderServiceImpl {
                 socketTask.getClientSocket().reqOpenOrders();
                 ct.await(CommonConstants.ORDER_SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
                 result.put("orders", DataCache.orderCache.get(DataCache.ORDER_KEY));
+            } else {
+                return new Result(StatusCode.IN_PROGRESS,"Request in progress, please wait");
             }
         } catch (Exception e) {
             log.error("reqOpenOrders",e);
@@ -133,6 +135,8 @@ public class OrderServiceImpl {
                 socketTask.getClientSocket().reqAllOpenOrders();
                 ct.await(CommonConstants.ORDER_SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
                 result.put("orders", DataCache.orderCache.get(DataCache.ORDER_KEY));
+            } else {
+                return new Result(StatusCode.IN_PROGRESS,"Request in progress, please wait");
             }
         } catch (Exception e) {
             log.error("reqAllOpenOrders",e);
@@ -157,6 +161,8 @@ public class OrderServiceImpl {
                 socketTask.getClientSocket().reqCompletedOrders(false);
                 ct.await(CommonConstants.ORDER_SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
                 result.put("orders", DataCache.orderCache.get(DataCache.ORDER_KEY));
+            } else {
+                return new Result(StatusCode.IN_PROGRESS,"Request in progress, please wait");
             }
         } catch (Exception e) {
             log.error("reqCompletedOrders",e);

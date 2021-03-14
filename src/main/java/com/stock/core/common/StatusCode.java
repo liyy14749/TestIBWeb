@@ -22,4 +22,8 @@ public class StatusCode {
      * 超时
      */
     public static final int TIME_OUT = 2;
+    /**
+     * 超时
+     */
+    public static final int IN_PROGRESS = 3;
 }
