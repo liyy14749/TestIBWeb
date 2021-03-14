@@ -6,7 +6,6 @@ package com.stock;
 import com.alibaba.fastjson.JSON;
 import com.ib.client.*;
 import com.stock.cache.DataCache;
-import com.stock.core.util.RedisUtil;
 import com.stock.vo.*;
 import com.stock.vo.rsp.PnlRsp;
 import org.slf4j.Logger;
@@ -20,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 @Service
 public class EWrapperImpl implements EWrapper {
@@ -107,20 +107,45 @@ public class EWrapperImpl implements EWrapper {
 	}
 	//! [orderstatus]
 
-	//! [openorder]
 	@Override
 	public void openOrder(int orderId, Contract contract, Order order,
 						  OrderState orderState) {
 		System.out.println(EWrapperMsgGenerator.openOrder(orderId, contract, order, orderState));
-		DataCache.orderCache.put(orderId,orderState);
-		TickerOrderVO ticker = DataCache.tickerOrderCache.get(orderId);
-		if(ticker ==null || ticker.getCountDown()==null){
-			return;
+		List<OrderDetail> orderDetails = DataCache.orderCache.get(DataCache.ORDER_KEY);
+		if(orderDetails !=null){
+			orderDetails.add(new OrderDetail(order, orderState));
 		}
-		ticker.setResult(true);
-		ticker.getCountDown().countDown();
+		DataCache.orderMap.put(orderId,new OrderDetail(order, orderState));
 	}
-	//! [openorder]
+
+	@Override
+	public void openOrderEnd() {
+		System.out.println("OpenOrderEnd");
+		CountDownLatch countDownLatch = DataCache.latchMap.get(DataCache.ORDER_KEY);
+		if(countDownLatch !=null){
+			countDownLatch.countDown();
+		}
+	}
+
+	@Override
+	public void completedOrder(Contract contract, Order order, OrderState orderState) {
+		System.out.println(EWrapperMsgGenerator.completedOrder(contract, order, orderState));
+		List<OrderDetail> orderDetails = DataCache.orderCache.get(DataCache.ORDER_KEY);
+		if(orderDetails !=null){
+			orderDetails.add(new OrderDetail(order, orderState));
+		}
+		DataCache.orderMap.put(order.orderId(), new OrderDetail(order, orderState));
+	}
+
+	@Override
+	public void completedOrdersEnd() {
+		System.out.println(EWrapperMsgGenerator.completedOrdersEnd());
+		CountDownLatch countDownLatch = DataCache.latchMap.get(DataCache.ORDER_KEY);
+		if(countDownLatch !=null){
+			countDownLatch.countDown();
+		}
+	}
+
 	@Override
 	public void contractDetails(int reqId, ContractDetails contractDetails) {
 		System.out.println(EWrapperMsgGenerator.contractDetails(reqId, contractDetails));
@@ -146,14 +171,6 @@ public class EWrapperImpl implements EWrapper {
 	public void bondContractDetails(int reqId, ContractDetails contractDetails) {
 		System.out.println(EWrapperMsgGenerator.bondContractDetails(reqId, contractDetails));
 	}
-
-	//! [openorderend]
-	@Override
-	public void openOrderEnd() {
-		System.out.println("OpenOrderEnd");
-		DataCache.reqOpenOrders.set(false);
-	}
-	//! [openorderend]
 
 	//! [tickoptioncomputation]
 	@Override
@@ -822,17 +839,4 @@ public class EWrapperImpl implements EWrapper {
     }
     //! [orderbound]
 
-    //! [completedorder]
-    @Override
-    public void completedOrder(Contract contract, Order order, OrderState orderState) {
-        System.out.println(EWrapperMsgGenerator.completedOrder(contract, order, orderState));
-    }
-    //! [completedorder]
-
-    //! [completedordersend]
-    @Override
-    public void completedOrdersEnd() {
-        System.out.println(EWrapperMsgGenerator.completedOrdersEnd());
-    }
-    //! [completedordersend]
 }
