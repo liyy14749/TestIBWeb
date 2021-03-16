@@ -52,6 +52,7 @@ public class SocketTask {
     }
 
     private void reconnect(EClientSocket m_client, EReaderSignal m_signal) {
+        m_client.eDisconnect();
         m_client.eConnect(ip, port, clientId);
         final EReader reader = new EReader(m_client, m_signal);
         if (m_client.isConnected()) {

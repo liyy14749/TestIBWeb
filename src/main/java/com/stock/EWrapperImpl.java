@@ -6,6 +6,7 @@ package com.stock;
 import com.alibaba.fastjson.JSON;
 import com.ib.client.*;
 import com.stock.cache.DataCache;
+import com.stock.utils.KeyUtil;
 import com.stock.vo.*;
 import com.stock.vo.rsp.PnlRsp;
 import org.slf4j.Logger;
@@ -28,6 +29,8 @@ public class EWrapperImpl implements EWrapper {
 
 	@Autowired
 	private RedisTemplate<String, String> template;
+	@Autowired
+	private KeyUtil keyUtil;
 
 	private EReaderSignal readerSignal;
 	private EClientSocket clientSocket;
@@ -93,7 +96,7 @@ public class EWrapperImpl implements EWrapper {
 		vo.setClientId(clientId);
 		vo.setWhyHeld(whyHeld);
 		vo.setMktCapPrice(mktCapPrice);
-		template.opsForZSet().add("order_msg_queue", JSON.toJSONString(vo), time);
+		template.opsForZSet().add(keyUtil.getKeyWithPrefix("order_msg_queue"), JSON.toJSONString(vo), time);
 	}
 
 
@@ -105,7 +108,9 @@ public class EWrapperImpl implements EWrapper {
 		if(orderDetails !=null){
 			orderDetails.add(new OrderDetail(order, orderState));
 		}
-		DataCache.orderMap.put(orderId,new OrderDetail(order, orderState));
+		if(order.orderId()!=0){
+			DataCache.orderMap.put(orderId,new OrderDetail(order, orderState));
+		}
 	}
 
 	@Override
