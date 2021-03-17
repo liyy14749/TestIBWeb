@@ -17,6 +17,8 @@ public class OrderDetail {
     private String tif = "DAY";
     private String account;
     private String status;
+    private double lmtPrice;
+    private double auxPrice;
 
     public OrderDetail(Order order, OrderState orderState) {
         this.clientId = order.clientId();
@@ -30,5 +32,7 @@ public class OrderDetail {
         this.tif = order.getTif();
         this.account = order.account();
         this.status = orderState.getStatus();
+        this.lmtPrice = order.lmtPrice();
+        this.auxPrice = order.auxPrice();
     }
 }
