@@ -35,17 +35,16 @@ public class SocketTask {
     public void start() {
         final EClientSocket m_client = wrapper.getClient();
         final EReaderSignal m_signal = wrapper.getSignal();
-        reconnect(m_client, m_signal);
         clientSocket = m_client;
         new Thread(() -> {
             while (true) {
+                if (!DataCache.SERVER_OK) {
+                    log.info("reconnect");
+                    reconnect(m_client, m_signal);
+                }
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
-                }
-                if (!DataCache.SERVER_OK) {
-                	log.info("reconnect");
-                    reconnect(m_client, m_signal);
                 }
             }
         }).start();
@@ -53,6 +52,10 @@ public class SocketTask {
 
     private void reconnect(EClientSocket m_client, EReaderSignal m_signal) {
         m_client.eDisconnect();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+        }
         m_client.eConnect(ip, port, clientId);
         final EReader reader = new EReader(m_client, m_signal);
         if (m_client.isConnected()) {

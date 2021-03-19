@@ -13,17 +13,17 @@ public class StatusCode {
     /**
      * 服务器错误
      */
-    public static final int ERROR = 500;
+    public static final int ERROR = 10004;
     /**
      * 参数错误
      */
-    public static final int PARAM_ERROR = 1;
+    public static final int PARAM_ERROR = 10001;
     /**
      * 超时
      */
-    public static final int TIME_OUT = 2;
+    public static final int TIME_OUT = 10002;
     /**
-     * 超时
+     * 请求过快，请稍等
      */
-    public static final int IN_PROGRESS = 3;
+    public static final int IN_PROGRESS = 10003;
 }

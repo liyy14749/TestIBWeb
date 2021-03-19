@@ -7,6 +7,7 @@ import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.ib.client.*;
 import com.stock.cache.DataCache;
+import com.stock.core.util.RedisUtil;
 import com.stock.utils.KeyUtil;
 import com.stock.vo.*;
 import com.stock.vo.rsp.PnlRsp;
@@ -33,6 +34,8 @@ public class EWrapperImpl implements EWrapper {
 	private RedisTemplate<String, String> template;
 	@Autowired
 	private KeyUtil keyUtil;
+	@Autowired
+	private RedisUtil redisUtil;
 
 	private EReaderSignal readerSignal;
 	private EClientSocket clientSocket;
@@ -84,7 +87,6 @@ public class EWrapperImpl implements EWrapper {
 		log.debug("OrderStatus. Id: "+orderId+", Status: "+status+", Filled"+filled+", Remaining: "+remaining
                 +", AvgFillPrice: "+avgFillPrice+", PermId: "+permId+", ParentId: "+parentId+", LastFillPrice: "+lastFillPrice+
                 ", ClientId: "+clientId+", WhyHeld: "+whyHeld+", MktCapPrice: "+mktCapPrice);
-
 		long time = System.currentTimeMillis()/1000;
 		OrderStatusVO vo = new OrderStatusVO();
 		vo.setOrderId(orderId);
@@ -100,6 +102,19 @@ public class EWrapperImpl implements EWrapper {
 		vo.setMktCapPrice(mktCapPrice);
 		vo.setTime(time);
 		vo.setDate(DateUtil.format(new Date(),"yyyy-MM-dd HH:mm:ss"));
+		if(redisUtil.hashGet(DataCache.ORDER_MAP_KEY, orderId, OrderInfo.class)==null){
+			OrderInfo o = new OrderInfo();
+			o.setTime(System.currentTimeMillis()/1000);
+			o.setStatusVO(vo);
+			redisUtil.hashPut(DataCache.ORDER_MAP_KEY, orderId, o);
+		} else {
+			OrderInfo o =redisUtil.hashGet(DataCache.ORDER_MAP_KEY, orderId, OrderInfo.class);
+			o.setStatusVO(vo);
+			redisUtil.hashPut(DataCache.ORDER_MAP_KEY, orderId, o);
+		}
+		if(permId!=0){
+			redisUtil.hashPut(DataCache.PERM_ID_MAP_KEY, permId, orderId);
+		}
 		template.opsForZSet().add(keyUtil.getKeyWithPrefix("order_msg_queue"), JSON.toJSONString(vo), time);
 	}
 
@@ -110,10 +125,22 @@ public class EWrapperImpl implements EWrapper {
 		log.debug(EWrapperMsgGenerator.openOrder(orderId, contract, order, orderState));
 		List<OrderDetail> orderDetails = DataCache.orderCache.get(DataCache.ORDER_KEY);
 		if(orderDetails !=null){
-			orderDetails.add(new OrderDetail(order, orderState));
+			orderDetails.add(new OrderDetail(order, orderState, contract));
 		}
 		if(order.orderId()!=0){
-			DataCache.orderMap.put(orderId,new OrderDetail(order, orderState));
+			if(redisUtil.hashGet(DataCache.ORDER_MAP_KEY, orderId, OrderInfo.class)==null){
+				OrderInfo o = new OrderInfo();
+				o.setTime(System.currentTimeMillis()/1000);
+				o.setOrderDetail(new OrderDetail(order, orderState, contract));
+				redisUtil.hashPut(DataCache.ORDER_MAP_KEY, orderId, o);
+			} else {
+				OrderInfo o =redisUtil.hashGet(DataCache.ORDER_MAP_KEY, orderId, OrderInfo.class);
+				o.setOrderDetail(new OrderDetail(order, orderState, contract));
+				redisUtil.hashPut(DataCache.ORDER_MAP_KEY, orderId, o);
+			}
+			if(order.permId()!=0){
+				redisUtil.hashPut(DataCache.PERM_ID_MAP_KEY,order.permId(), orderId);
+			}
 		}
 	}
 
@@ -131,9 +158,24 @@ public class EWrapperImpl implements EWrapper {
 		log.debug(EWrapperMsgGenerator.completedOrder(contract, order, orderState));
 		List<OrderDetail> orderDetails = DataCache.orderCache.get(DataCache.ORDER_KEY);
 		if(orderDetails !=null){
-			orderDetails.add(new OrderDetail(order, orderState));
+			orderDetails.add(new OrderDetail(order, orderState, contract));
 		}
-		DataCache.orderMap.put(order.orderId(), new OrderDetail(order, orderState));
+		int orderId = order.orderId();
+		if(orderId != 0){
+			if(redisUtil.hashGet(DataCache.ORDER_MAP_KEY, orderId, OrderInfo.class)==null){
+				OrderInfo o = new OrderInfo();
+				o.setTime(System.currentTimeMillis()/1000);
+				o.setOrderDetail(new OrderDetail(order, orderState, contract));
+				redisUtil.hashPut(DataCache.ORDER_MAP_KEY, orderId, o);
+			} else {
+				OrderInfo o =redisUtil.hashGet(DataCache.ORDER_MAP_KEY, orderId, OrderInfo.class);
+				o.setOrderDetail(new OrderDetail(order, orderState, contract));
+				redisUtil.hashPut(DataCache.ORDER_MAP_KEY, orderId, o);
+			}
+			if(order.permId()!=0){
+				redisUtil.hashPut(DataCache.PERM_ID_MAP_KEY,order.permId(), orderId);
+			}
+		}
 	}
 
 	@Override

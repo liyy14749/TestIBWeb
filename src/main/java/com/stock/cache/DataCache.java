@@ -1,5 +1,7 @@
 package com.stock.cache;
 
+import com.stock.core.config.PropConfig;
+import com.stock.core.util.BeanUtil;
 import com.stock.vo.*;
 
 import java.util.List;
@@ -17,11 +19,19 @@ public class DataCache {
     public static Map<String,CountDownLatch> latchMap = new ConcurrentHashMap<>();
     public static String ORDER_KEY = "reqOrders";
     public static Map<String, List<OrderDetail>> orderCache = new ConcurrentHashMap<>();
-    public static Map<Integer, OrderDetail> orderMap = new ConcurrentHashMap<>();
+    public static String ORDER_MAP_KEY = "order_map";
+    public static String PERM_ID_MAP_KEY = "perm_id_map";
+//    public static Map<Integer, OrderInfo> orderMap = new ConcurrentHashMap<>();
+//    public static Map<Integer, Integer> permIdMap = new ConcurrentHashMap<>();
 
     public static boolean SERVER_OK = false;
 
     static {
         lockMap.put(ORDER_KEY,new ReentrantLock());
+        PropConfig propConfig = BeanUtil.getBean(PropConfig.class);
+        if(propConfig.getEnv().equals("test")){
+            ORDER_MAP_KEY = "test_"+ORDER_MAP_KEY;
+            PERM_ID_MAP_KEY = "test_"+PERM_ID_MAP_KEY;
+        }
     }
 }

@@ -9,5 +9,5 @@ public class OrderVO {
     private String orderType;
     private Double totalQuantity;
     private Double lmtPrice;
-
+    private String tif;
 }

@@ -1,8 +1,10 @@
 package com.stock.vo;
 
+import com.ib.client.Contract;
 import com.ib.client.Order;
 import com.ib.client.OrderState;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 @Data
 public class OrderDetail {
@@ -19,8 +21,15 @@ public class OrderDetail {
     private String status;
     private double lmtPrice;
     private double auxPrice;
+    private String symbol;
+    private double filled;
+    private double remaining;
+    private double avgFillPrice;
+    private double lastFilledPrice;
 
-    public OrderDetail(Order order, OrderState orderState) {
+    public OrderDetail(){
+    }
+    public OrderDetail(Order order, OrderState orderState, Contract contract) {
         this.clientId = order.clientId();
         this.orderId = order.orderId();
         this.permId = order.permId();
@@ -34,5 +43,16 @@ public class OrderDetail {
         this.status = orderState.getStatus();
         this.lmtPrice = order.lmtPrice();
         this.auxPrice = order.auxPrice();
+        this.symbol = contract.symbol();
+    }
+    public void initOrderDetail(OrderDetail orderDetail) {
+        BeanUtils.copyProperties(orderDetail, this);
+    }
+    public OrderDetail initStatus(OrderStatusVO vo){
+        this.filled = vo.getFilled();
+        this.remaining = vo.getRemaining();
+        this.avgFillPrice = vo.getAvgFillPrice();
+        this.lastFilledPrice = vo.getLastFillPrice();
+        return this;
     }
 }

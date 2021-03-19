@@ -7,6 +7,7 @@ import com.stock.constants.CommonConstants;
 import com.stock.core.common.Result;
 import com.stock.core.common.StatusCode;
 import com.stock.core.util.AssertUtil;
+import com.stock.core.util.RedisUtil;
 import com.stock.vo.*;
 import com.stock.vo.req.PlaceOrderReq;
 import org.slf4j.Logger;
@@ -32,7 +33,9 @@ public class OrderServiceImpl {
     private static Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
     @Autowired
-    SocketTask socketTask;
+    private SocketTask socketTask;
+    @Autowired
+    private RedisUtil redisUtil;
 
     public Result placeOrder(PlaceOrderReq req) {
         AssertUtil.validateEmpty(req.getUniqueId(), "uniqueId");
@@ -42,10 +45,11 @@ public class OrderServiceImpl {
         AssertUtil.validateEmpty(req.getContract().getCurrency(), "currency");
         AssertUtil.validateEmpty(req.getContract().getExchange(), "exchange");
 
-        AssertUtil.validateEmpty(req.getOrder(), "order");
-        AssertUtil.validateEmpty(req.getOrder().getAction(), "action");
-        AssertUtil.validateEmpty(req.getOrder().getOrderType(), "orderType");
-        AssertUtil.validateEmpty(req.getOrder().getTotalQuantity(), "totalQuantity");
+        OrderVO reqOrder = req.getOrder();
+        AssertUtil.validateEmpty(reqOrder, "order");
+        AssertUtil.validateEmpty(reqOrder.getAction(), "action");
+        AssertUtil.validateEmpty(reqOrder.getOrderType(), "orderType");
+        AssertUtil.validateEmpty(reqOrder.getTotalQuantity(), "totalQuantity");
 
         Contract contract = new Contract();
         contract.symbol(req.getContract().getSymbol());
@@ -55,10 +59,11 @@ public class OrderServiceImpl {
         contract.primaryExch(req.getContract().getPrimaryExch());
 
         Order order = new Order();
-        order.action(req.getOrder().getAction());
-        order.orderType(req.getOrder().getOrderType());
-        order.totalQuantity(req.getOrder().getTotalQuantity());
-        order.lmtPrice(req.getOrder().getLmtPrice()); // optional
+        order.action(reqOrder.getAction());
+        order.orderType(reqOrder.getOrderType());
+        order.totalQuantity(reqOrder.getTotalQuantity());
+        order.tif(reqOrder.getTif());
+        order.lmtPrice(reqOrder.getLmtPrice()); // optional
 
         int tid = req.getUniqueId();
         TickerOrderVO tickerVO = new TickerOrderVO(tid, req.getContract().getSymbol());
@@ -96,6 +101,31 @@ public class OrderServiceImpl {
             }
         });
     }*/
+    private List<OrderDetail> setField(List<OrderDetail> orderDetails){
+        if(orderDetails!=null){
+            for(OrderDetail od: orderDetails){
+                Integer orderId = od.getOrderId();
+                boolean flag = false;
+                if(orderId == 0){
+                    if(redisUtil.hashGet(DataCache.PERM_ID_MAP_KEY, od.getPermId(), Integer.class)!=null){
+                        orderId = redisUtil.hashGet(DataCache.PERM_ID_MAP_KEY, od.getPermId(), Integer.class);
+                        od.setOrderId(orderId);
+                        flag = true;
+                    }
+                }
+                OrderInfo orderInfo = redisUtil.hashGet(DataCache.ORDER_MAP_KEY, orderId, OrderInfo.class);
+                if(orderId !=0 && orderInfo !=null){
+                    if(flag){
+                        od.initOrderDetail(orderInfo.getOrderDetail());
+                    }
+                    if(orderInfo.getStatusVO()!=null){
+                        od.initStatus(orderInfo.getStatusVO());
+                    }
+                }
+            }
+        }
+        return orderDetails;
+    }
 
     public Result reqOpenOrders() {
         Result result = new Result();
@@ -108,7 +138,7 @@ public class OrderServiceImpl {
                 DataCache.latchMap.put(DataCache.ORDER_KEY, ct);
                 socketTask.getClientSocket().reqOpenOrders();
                 ct.await(CommonConstants.ORDER_SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
-                result.put("orders", DataCache.orderCache.get(DataCache.ORDER_KEY));
+                result.put("orders", setField(DataCache.orderCache.get(DataCache.ORDER_KEY)));
             } else {
                 return new Result(StatusCode.IN_PROGRESS,"Request in progress, please wait");
             }
@@ -134,7 +164,7 @@ public class OrderServiceImpl {
                 DataCache.latchMap.put(DataCache.ORDER_KEY, ct);
                 socketTask.getClientSocket().reqAllOpenOrders();
                 ct.await(CommonConstants.ORDER_SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
-                result.put("orders", DataCache.orderCache.get(DataCache.ORDER_KEY));
+                result.put("orders", setField(DataCache.orderCache.get(DataCache.ORDER_KEY)));
             } else {
                 return new Result(StatusCode.IN_PROGRESS,"Request in progress, please wait");
             }
@@ -160,7 +190,7 @@ public class OrderServiceImpl {
                 DataCache.latchMap.put(DataCache.ORDER_KEY, ct);
                 socketTask.getClientSocket().reqCompletedOrders(false);
                 ct.await(CommonConstants.ORDER_SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
-                result.put("orders", DataCache.orderCache.get(DataCache.ORDER_KEY));
+                result.put("orders", setField(DataCache.orderCache.get(DataCache.ORDER_KEY)));
             } else {
                 return new Result(StatusCode.IN_PROGRESS,"Request in progress, please wait");
             }
@@ -200,9 +230,11 @@ public class OrderServiceImpl {
 
     public Result orderStatus(PlaceOrderReq req) {
         AssertUtil.validateEmpty(req.getUniqueId(), "uniqueId");
-        OrderDetail orderDetail = DataCache.orderMap.get(req.getUniqueId());
+        OrderInfo orderInfo = redisUtil.hashGet(DataCache.ORDER_MAP_KEY, req.getUniqueId(), OrderInfo.class);
         Result result = new Result();
-        if (orderDetail != null) {
+        if (orderInfo != null) {
+            OrderDetail orderDetail = orderInfo.getOrderDetail();
+            orderDetail.initStatus(orderInfo.getStatusVO());
             result.put("order", orderDetail);
         }
         return result;
