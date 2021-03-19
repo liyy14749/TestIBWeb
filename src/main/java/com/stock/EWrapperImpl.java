@@ -3,6 +3,7 @@
 
 package com.stock;
 
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.ib.client.*;
 import com.stock.cache.DataCache;
@@ -16,6 +17,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -96,6 +98,8 @@ public class EWrapperImpl implements EWrapper {
 		vo.setClientId(clientId);
 		vo.setWhyHeld(whyHeld);
 		vo.setMktCapPrice(mktCapPrice);
+		vo.setTime(time);
+		vo.setDate(DateUtil.format(new Date(),"yyyy-MM-dd HH:mm:ss"));
 		template.opsForZSet().add(keyUtil.getKeyWithPrefix("order_msg_queue"), JSON.toJSONString(vo), time);
 	}
 

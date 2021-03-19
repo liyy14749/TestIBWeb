@@ -15,4 +15,6 @@ public class OrderStatusVO {
     private int clientId;
     private String whyHeld;
     private double mktCapPrice;
+    private long time;
+    private String date;
 }
