@@ -87,7 +87,7 @@ public class EWrapperImpl implements EWrapper {
 		log.debug("OrderStatus. Id: "+orderId+", Status: "+status+", Filled"+filled+", Remaining: "+remaining
                 +", AvgFillPrice: "+avgFillPrice+", PermId: "+permId+", ParentId: "+parentId+", LastFillPrice: "+lastFillPrice+
                 ", ClientId: "+clientId+", WhyHeld: "+whyHeld+", MktCapPrice: "+mktCapPrice);
-		long time = System.currentTimeMillis()/1000;
+		long time = System.currentTimeMillis();
 		OrderStatusVO vo = new OrderStatusVO();
 		vo.setOrderId(orderId);
 		vo.setStatus(status);

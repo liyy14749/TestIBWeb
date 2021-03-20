@@ -9,6 +9,7 @@ import com.stock.core.common.StatusCode;
 import com.stock.core.util.AssertUtil;
 import com.stock.core.util.RedisUtil;
 import com.stock.vo.*;
+import com.stock.vo.req.OrderStatusReq;
 import com.stock.vo.req.PlaceOrderReq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -228,14 +229,20 @@ public class OrderServiceImpl {
         return Result.ok();
     }
 
-    public Result orderStatus(PlaceOrderReq req) {
-        AssertUtil.validateEmpty(req.getUniqueId(), "uniqueId");
-        OrderInfo orderInfo = redisUtil.hashGet(DataCache.ORDER_MAP_KEY, req.getUniqueId(), OrderInfo.class);
+    public Result orderStatus(OrderStatusReq req) {
         Result result = new Result();
-        if (orderInfo != null) {
-            OrderDetail orderDetail = orderInfo.getOrderDetail();
-            orderDetail.initStatus(orderInfo.getStatusVO());
-            result.put("order", orderDetail);
+        AssertUtil.validateAllEmpty("uniqueId or permId cannot all is empty",req.getUniqueId(),req.getPermId());
+        Integer uniqueId = req.getUniqueId();
+        if(uniqueId == null && req.getPermId()!=null){
+            uniqueId = redisUtil.hashGet(DataCache.PERM_ID_MAP_KEY, req.getPermId(), Integer.class);
+        }
+        if(uniqueId!=null){
+            OrderInfo orderInfo = redisUtil.hashGet(DataCache.ORDER_MAP_KEY, uniqueId, OrderInfo.class);
+            if (orderInfo != null) {
+                OrderDetail orderDetail = orderInfo.getOrderDetail();
+                orderDetail.initStatus(orderInfo.getStatusVO());
+                result.put("order", orderDetail);
+            }
         }
         return result;
     }

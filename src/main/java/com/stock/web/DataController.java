@@ -10,10 +10,7 @@ import com.stock.service.AccountServiceImpl;
 import com.stock.service.HistoryServiceImpl;
 import com.stock.service.OrderServiceImpl;
 import com.stock.vo.ContractVO;
-import com.stock.vo.req.AccountSummaryReq;
-import com.stock.vo.req.HistoricalDataReq;
-import com.stock.vo.req.PlaceOrderReq;
-import com.stock.vo.req.PnlReq;
+import com.stock.vo.req.*;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -70,7 +67,7 @@ public class DataController {
     @ApiOperation(value = "订单状态")
     @PostMapping("/orderStatus")
     @LogPoint
-    public Result orderStatus(@RequestBody PlaceOrderReq req) {
+    public Result orderStatus(@RequestBody OrderStatusReq req) {
         return orderServiceImpl.orderStatus(req);
     }
 
