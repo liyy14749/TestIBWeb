@@ -30,6 +30,9 @@ public class OrderDetail {
     private double maxCommission;
     private double minCommission;
     private String commissionCurrency;
+    private String goodAfterTime;
+    //YYYYMMDD hh:mm:ss CCT
+    private String goodTillDate;
 
     public OrderDetail(){
     }
@@ -52,6 +55,8 @@ public class OrderDetail {
         this.commissionCurrency = orderState.commissionCurrency();
         this.minCommission = orderState.minCommission();
         this.maxCommission = orderState.maxCommission();
+        this.goodAfterTime = order.goodAfterTime();
+        this.goodTillDate = order.goodTillDate();
     }
     public void initOrderDetail(OrderDetail orderDetail) {
         BeanUtils.copyProperties(orderDetail, this);
