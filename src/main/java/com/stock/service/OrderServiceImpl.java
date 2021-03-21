@@ -65,6 +65,8 @@ public class OrderServiceImpl {
         order.totalQuantity(reqOrder.getTotalQuantity());
         order.tif(reqOrder.getTif());
         order.lmtPrice(reqOrder.getLmtPrice()); // optional
+        order.goodAfterTime(reqOrder.getGoodAfterTime());
+        order.goodTillDate(reqOrder.getGoodTillDate());
 
         int tid = req.getUniqueId();
         TickerOrderVO tickerVO = new TickerOrderVO(tid, req.getContract().getSymbol());

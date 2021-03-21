@@ -26,6 +26,10 @@ public class OrderDetail {
     private double remaining;
     private double avgFillPrice;
     private double lastFilledPrice;
+    private double commission;
+    private double maxCommission;
+    private double minCommission;
+    private String commissionCurrency;
 
     public OrderDetail(){
     }
@@ -44,6 +48,10 @@ public class OrderDetail {
         this.lmtPrice = order.lmtPrice();
         this.auxPrice = order.auxPrice();
         this.symbol = contract.symbol();
+        this.commission = orderState.commission();
+        this.commissionCurrency = orderState.commissionCurrency();
+        this.minCommission = orderState.minCommission();
+        this.maxCommission = orderState.maxCommission();
     }
     public void initOrderDetail(OrderDetail orderDetail) {
         BeanUtils.copyProperties(orderDetail, this);

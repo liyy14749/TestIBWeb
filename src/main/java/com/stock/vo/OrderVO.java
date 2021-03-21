@@ -10,4 +10,7 @@ public class OrderVO {
     private Double totalQuantity;
     private Double lmtPrice;
     private String tif;
+    private String goodAfterTime;
+    //YYYYMMDD hh:mm:ss CCT
+    private String goodTillDate;
 }
