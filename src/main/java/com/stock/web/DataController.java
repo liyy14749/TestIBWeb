@@ -102,21 +102,21 @@ public class DataController {
     @ApiOperation(value = "reqOpenOrders")
     @PostMapping("/reqOpenOrders")
     @LogPoint
-    public Result reqOpenOrders() {
-        return orderServiceImpl.reqOpenOrders();
+    public Result reqOpenOrders(@RequestBody(required = false) OrderStatusReq req) {
+        return orderServiceImpl.reqOpenOrders(req);
     }
 
     @ApiOperation(value = "reqAllOpenOrders")
     @PostMapping("/reqAllOpenOrders")
     @LogPoint
-    public Result reqAllOpenOrders() {
-        return orderServiceImpl.reqAllOpenOrders();
+    public Result reqAllOpenOrders(@RequestBody(required = false) OrderStatusReq req) {
+        return orderServiceImpl.reqAllOpenOrders(req);
     }
 
     @ApiOperation(value = "reqCompletedOrders")
     @PostMapping("/reqCompletedOrders")
     @LogPoint
-    public Result reqCompletedOrders() {
-        return orderServiceImpl.reqCompletedOrders();
+    public Result reqCompletedOrders(@RequestBody(required = false) OrderStatusReq req) {
+        return orderServiceImpl.reqCompletedOrders(req);
     }
 }

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -130,7 +131,7 @@ public class OrderServiceImpl {
         return orderDetails;
     }
 
-    public Result reqOpenOrders() {
+    public Result reqOpenOrders(OrderStatusReq req) {
         Result result = new Result();
         boolean flag = false;
         try {
@@ -141,7 +142,11 @@ public class OrderServiceImpl {
                 DataCache.latchMap.put(DataCache.ORDER_KEY, ct);
                 socketTask.getClientSocket().reqOpenOrders();
                 ct.await(CommonConstants.ORDER_SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
-                result.put("orders", setField(DataCache.orderCache.get(DataCache.ORDER_KEY)));
+                List<OrderDetail> ods = setField(DataCache.orderCache.get(DataCache.ORDER_KEY));
+                if(req!=null && req.getPermId()!=null &&req.getPermId()!=0){
+                    ods = ods.stream().filter(i-> i.getPermId() == req.getPermId()).collect(Collectors.toList());
+                }
+                result.put("orders", ods);
             } else {
                 return new Result(StatusCode.IN_PROGRESS,"Request in progress, please wait");
             }
@@ -156,7 +161,7 @@ public class OrderServiceImpl {
         return result;
     }
 
-    public Result reqAllOpenOrders() {
+    public Result reqAllOpenOrders(OrderStatusReq req) {
         Result result = new Result();
         boolean flag = false;
         try {
@@ -167,7 +172,11 @@ public class OrderServiceImpl {
                 DataCache.latchMap.put(DataCache.ORDER_KEY, ct);
                 socketTask.getClientSocket().reqAllOpenOrders();
                 ct.await(CommonConstants.ORDER_SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
-                result.put("orders", setField(DataCache.orderCache.get(DataCache.ORDER_KEY)));
+                List<OrderDetail> ods = setField(DataCache.orderCache.get(DataCache.ORDER_KEY));
+                if(req!=null && req.getPermId()!=null &&req.getPermId()!=0){
+                    ods = ods.stream().filter(i-> i.getPermId() == req.getPermId()).collect(Collectors.toList());
+                }
+                result.put("orders", ods);
             } else {
                 return new Result(StatusCode.IN_PROGRESS,"Request in progress, please wait");
             }
@@ -182,7 +191,7 @@ public class OrderServiceImpl {
         return result;
     }
 
-    public Result reqCompletedOrders() {
+    public Result reqCompletedOrders(OrderStatusReq req) {
         Result result = new Result();
         boolean flag = false;
         try {
@@ -193,7 +202,11 @@ public class OrderServiceImpl {
                 DataCache.latchMap.put(DataCache.ORDER_KEY, ct);
                 socketTask.getClientSocket().reqCompletedOrders(false);
                 ct.await(CommonConstants.ORDER_SEARCH_TIMEOUT, TimeUnit.MILLISECONDS);
-                result.put("orders", setField(DataCache.orderCache.get(DataCache.ORDER_KEY)));
+                List<OrderDetail> ods = setField(DataCache.orderCache.get(DataCache.ORDER_KEY));
+                if(req!=null && req.getPermId()!=null &&req.getPermId()!=0){
+                    ods = ods.stream().filter(i-> i.getPermId() == req.getPermId()).collect(Collectors.toList());
+                }
+                result.put("orders", ods);
             } else {
                 return new Result(StatusCode.IN_PROGRESS,"Request in progress, please wait");
             }
