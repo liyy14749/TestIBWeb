@@ -55,7 +55,9 @@ public class OrderDetail {
         this.goodTillDate = order.goodTillDate();
     }
     public void initOrderDetail(OrderDetail orderDetail) {
-        BeanUtils.copyProperties(orderDetail, this);
+        if(orderDetail!=null){
+            BeanUtils.copyProperties(orderDetail, this);
+        }
     }
     public OrderDetail initStatus(OrderStatusVO vo){
         this.filled = vo.getFilled();

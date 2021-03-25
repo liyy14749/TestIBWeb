@@ -20,7 +20,7 @@ public class DataCache {
     public static Map<String,CountDownLatch> latchMap = new ConcurrentHashMap<>();
     public static String ORDER_KEY = "reqOrders";
     public static String POSITION_KEY = "reqPositions";
-    public static Map<String, List<OrderDetail>> orderCache = new ConcurrentHashMap<>();
+    public static Map<String, Map<Integer,OrderDetail>> orderCache = new ConcurrentHashMap<>();
     public static String ORDER_MAP_KEY = "order_map";
     public static String PERM_ID_MAP_KEY = "perm_id_map";
 //    public static Map<Integer, OrderInfo> orderMap = new ConcurrentHashMap<>();

@@ -123,9 +123,9 @@ public class EWrapperImpl implements EWrapper {
 	public void openOrder(int orderId, Contract contract, Order order,
 						  OrderState orderState) {
 		log.debug(EWrapperMsgGenerator.openOrder(orderId, contract, order, orderState));
-		List<OrderDetail> orderDetails = DataCache.orderCache.get(DataCache.ORDER_KEY);
+		Map<Integer,OrderDetail> orderDetails = DataCache.orderCache.get(DataCache.ORDER_KEY);
 		if(orderDetails !=null){
-			orderDetails.add(new OrderDetail(order, orderState, contract));
+			orderDetails.put(order.permId(),new OrderDetail(order, orderState, contract));
 		}
 		if(order.orderId()!=0){
 			if(redisUtil.hashGet(DataCache.ORDER_MAP_KEY, orderId, OrderInfo.class)==null){
@@ -156,9 +156,9 @@ public class EWrapperImpl implements EWrapper {
 	@Override
 	public void completedOrder(Contract contract, Order order, OrderState orderState) {
 		log.debug(EWrapperMsgGenerator.completedOrder(contract, order, orderState));
-		List<OrderDetail> orderDetails = DataCache.orderCache.get(DataCache.ORDER_KEY);
+		Map<Integer,OrderDetail> orderDetails = DataCache.orderCache.get(DataCache.ORDER_KEY);
 		if(orderDetails !=null){
-			orderDetails.add(new OrderDetail(order, orderState, contract));
+			orderDetails.put(order.permId(),new OrderDetail(order, orderState, contract));
 		}
 		int orderId = order.orderId();
 		if(orderId != 0){

@@ -6,6 +6,7 @@ import com.stock.cache.DataCache;
 import com.stock.constants.CommonConstants;
 import com.stock.core.common.Result;
 import com.stock.core.common.StatusCode;
+import com.stock.core.exception.BusinessException;
 import com.stock.core.util.AssertUtil;
 import com.stock.core.util.RedisUtil;
 import com.stock.vo.*;
@@ -17,7 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -105,30 +108,26 @@ public class OrderServiceImpl {
             }
         });
     }*/
-    private List<OrderDetail> setField(List<OrderDetail> orderDetails){
+    private List<OrderDetail> setField(Map<Integer,OrderDetail> orderDetails){
+        List<OrderDetail> list = new ArrayList<>();
         if(orderDetails!=null){
-            for(OrderDetail od: orderDetails){
-                Integer orderId = od.getOrderId();
-                boolean flag = false;
-                if(orderId == 0){
-                    if(redisUtil.hashGet(DataCache.PERM_ID_MAP_KEY, od.getPermId(), Integer.class)!=null){
-                        orderId = redisUtil.hashGet(DataCache.PERM_ID_MAP_KEY, od.getPermId(), Integer.class);
-                        od.setOrderId(orderId);
-                        flag = true;
-                    }
-                }
-                OrderInfo orderInfo = redisUtil.hashGet(DataCache.ORDER_MAP_KEY, orderId, OrderInfo.class);
-                if(orderId !=0 && orderInfo !=null){
-                    if(flag){
+            for(Integer key: orderDetails.keySet()){
+                OrderDetail od = orderDetails.get(key);
+                Integer orderId = redisUtil.hashGet(DataCache.PERM_ID_MAP_KEY, od.getPermId(), Integer.class);
+                if(orderId!=null){
+                    list.add(od);
+                    od.setOrderId(orderId);
+                    OrderInfo orderInfo = redisUtil.hashGet(DataCache.ORDER_MAP_KEY, orderId, OrderInfo.class);
+                    if(orderInfo !=null && orderInfo.getOrderDetail() !=null){
                         od.initOrderDetail(orderInfo.getOrderDetail());
-                    }
-                    if(orderInfo.getStatusVO()!=null){
-                        od.initStatus(orderInfo.getStatusVO());
+                        if(orderInfo.getStatusVO()!=null){
+                            od.initStatus(orderInfo.getStatusVO());
+                        }
                     }
                 }
             }
         }
-        return orderDetails;
+        return list;
     }
 
     public Result reqOpenOrders(OrderStatusReq req) {
@@ -137,7 +136,7 @@ public class OrderServiceImpl {
         try {
             if (DataCache.lockMap.get(DataCache.ORDER_KEY).tryLock()) {
                 flag = true;
-                DataCache.orderCache.put(DataCache.ORDER_KEY, new ArrayList<>());
+                DataCache.orderCache.put(DataCache.ORDER_KEY, new LinkedHashMap<>());
                 CountDownLatch ct = new CountDownLatch(1);
                 DataCache.latchMap.put(DataCache.ORDER_KEY, ct);
                 socketTask.getClientSocket().reqOpenOrders();
@@ -167,7 +166,7 @@ public class OrderServiceImpl {
         try {
             if (DataCache.lockMap.get(DataCache.ORDER_KEY).tryLock()) {
                 flag = true;
-                DataCache.orderCache.put(DataCache.ORDER_KEY, new ArrayList<>());
+                DataCache.orderCache.put(DataCache.ORDER_KEY, new LinkedHashMap<>());
                 CountDownLatch ct = new CountDownLatch(1);
                 DataCache.latchMap.put(DataCache.ORDER_KEY, ct);
                 socketTask.getClientSocket().reqAllOpenOrders();
@@ -193,11 +192,13 @@ public class OrderServiceImpl {
 
     public Result reqCompletedOrders(OrderStatusReq req) {
         Result result = new Result();
+        AssertUtil.validateEmpty(req, "permId");
+        AssertUtil.validateEmpty(req.getPermId(), "permId");
         boolean flag = false;
         try {
             if (DataCache.lockMap.get(DataCache.ORDER_KEY).tryLock()) {
                 flag = true;
-                DataCache.orderCache.put(DataCache.ORDER_KEY, new ArrayList<>());
+                DataCache.orderCache.put(DataCache.ORDER_KEY, new LinkedHashMap<>());
                 CountDownLatch ct = new CountDownLatch(1);
                 DataCache.latchMap.put(DataCache.ORDER_KEY, ct);
                 socketTask.getClientSocket().reqCompletedOrders(false);
@@ -205,6 +206,21 @@ public class OrderServiceImpl {
                 List<OrderDetail> ods = setField(DataCache.orderCache.get(DataCache.ORDER_KEY));
                 if(req!=null && req.getPermId()!=null &&req.getPermId()!=0){
                     ods = ods.stream().filter(i-> i.getPermId() == req.getPermId()).collect(Collectors.toList());
+                }
+                if(ods.size() == 0){
+                    Integer permId = req.getPermId();
+                    Integer orderId = redisUtil.hashGet(DataCache.PERM_ID_MAP_KEY, permId, Integer.class);
+                    if(orderId!=null && orderId!=0){
+                        OrderInfo orderInfo = redisUtil.hashGet(DataCache.ORDER_MAP_KEY, orderId, OrderInfo.class);
+                        if(orderInfo !=null){
+                            OrderDetail od = new OrderDetail();
+                            ods.add(od);
+                            od.initOrderDetail(orderInfo.getOrderDetail());
+                            if(orderInfo.getStatusVO()!=null){
+                                od.initStatus(orderInfo.getStatusVO());
+                            }
+                        }
+                    }
                 }
                 result.put("orders", ods);
             } else {
