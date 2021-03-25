@@ -4,6 +4,7 @@ import com.stock.core.config.PropConfig;
 import com.stock.core.util.BeanUtil;
 import com.stock.vo.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +19,7 @@ public class DataCache {
     public static Map<String,ReentrantLock> lockMap = new ConcurrentHashMap<>();
     public static Map<String,CountDownLatch> latchMap = new ConcurrentHashMap<>();
     public static String ORDER_KEY = "reqOrders";
+    public static String POSITION_KEY = "reqPositions";
     public static Map<String, List<OrderDetail>> orderCache = new ConcurrentHashMap<>();
     public static String ORDER_MAP_KEY = "order_map";
     public static String PERM_ID_MAP_KEY = "perm_id_map";

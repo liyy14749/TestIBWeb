@@ -7,6 +7,6 @@ public class PositionVO {
     private String account;
     private String modelCode;
     private ContractVO contract;
-    private double pos;
+    private double position;
     private double avgCost;
 }

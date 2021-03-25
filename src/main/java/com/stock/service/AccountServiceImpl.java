@@ -6,6 +6,7 @@ import com.stock.constants.CommonConstants;
 import com.stock.core.common.Result;
 import com.stock.core.common.StatusCode;
 import com.stock.core.util.AssertUtil;
+import com.stock.vo.PositionVO;
 import com.stock.vo.TickerVO;
 import com.stock.vo.req.AccountSummaryReq;
 import com.stock.vo.req.PnlReq;
@@ -16,8 +17,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -89,7 +93,7 @@ public class AccountServiceImpl {
 
         int tid = SocketTask.tickerId.incrementAndGet();
         TickerVO tickerVO = new TickerVO(tid);
-        tickerVO.setPositions(new ArrayList<>());
+        tickerVO.setPositions(new LinkedHashMap<>());
         tickerVO.setCountDown(new CountDownLatch(1));
         DataCache.tickerCache.put(tid,tickerVO);
         socketTask.getClientSocket().reqPositionsMulti(tid, req.getAccount(), req.getModelCode());
@@ -101,7 +105,8 @@ public class AccountServiceImpl {
         DataCache.tickerCache.remove(tid);
         if(tickerVO.getErrorCode() == 0 && tickerVO.isFinish()){
             Result result = new Result();
-            result.put("positions",tickerVO.getPositions());
+            List<PositionVO> list = tickerVO.getPositions().entrySet().stream().map(e -> e.getValue()).collect(Collectors.toList());
+            result.put("positions",list);
             return result;
         } else if(tickerVO.getErrorCode() != 0){
             return Result.fail(tickerVO.getErrorCode(),tickerVO.getErrorMsg());

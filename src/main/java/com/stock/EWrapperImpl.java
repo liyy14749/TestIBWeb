@@ -572,8 +572,10 @@ public class EWrapperImpl implements EWrapper {
 		PositionVO vo = new PositionVO();
 		vo.setAccount(account);
 		vo.setModelCode(modelCode);
+		vo.setPosition(pos);
+		vo.setAvgCost(avgCost);
 		vo.setContract(new ContractVO().parseContract(contract));
-		ticker.getPositions().add(vo);
+		ticker.getPositions().put(contract.conid(),vo);
 	}
 
 	@Override

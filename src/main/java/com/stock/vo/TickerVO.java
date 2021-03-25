@@ -5,6 +5,7 @@ import com.stock.vo.rsp.PnlRsp;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 @Data
@@ -18,7 +19,7 @@ public class TickerVO {
     private List<ContractDetailsVO> contractDetails;
     private AccountSummaryRsp accountSummary;
     private PnlRsp pnl;
-    private List<PositionVO> positions;
+    private Map<Integer, PositionVO> positions;
     private boolean finish = false;
 
     public TickerVO(int tickerId) {
