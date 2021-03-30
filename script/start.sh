@@ -11,7 +11,7 @@ else
 
   time_hour=$(date "+%Y%m%d%H");
   log_path="${PROJECT_CONSOLE_LOG_PATH}/console.${time_hour}.log"
-  nohup java -jar ${PROJECT_NAME_JAR} --spring.profiles.active=${ACTIVE} --my.ib.server.clientId=${CLIENT_ID} >> ${log_path} 2>&1 &
+  nohup java -jar ${PROJECT_NAME_JAR} --spring.profiles.active=${ACTIVE} --my.ib.server.clientId=${CLIENT_ID} --my.ib.server.host=${CLIENT_HOST} --my.ib.server.port=${CLIENT_PORT} >> ${log_path} 2>&1 &
   sleep 3
   tail -n 50 ${log_path}
 fi
