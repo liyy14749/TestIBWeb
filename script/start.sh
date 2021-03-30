@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./config.sh $1 $2
+source ./config.sh $1 $2 $3 $4
 
 # 启动服务
 num=$(ps -ef | grep "${PROJECT_NAME_JAR}" | grep "${ACTIVE}" | grep "${CLIENT_ID}" | grep -v "grep" | wc -l)
@@ -12,7 +12,7 @@ else
   time_hour=$(date "+%Y%m%d%H");
   log_path="${PROJECT_CONSOLE_LOG_PATH}/console.${time_hour}.log"
   nohup java -jar ${PROJECT_NAME_JAR} --spring.profiles.active=${ACTIVE} --my.ib.server.clientId=${CLIENT_ID} >> ${log_path} 2>&1 &
-  sleep 2
+  sleep 3
   tail -n 50 ${log_path}
 fi
 
