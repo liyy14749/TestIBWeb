@@ -19,6 +19,7 @@ public class DataCache {
     public static Map<String,ReentrantLock> lockMap = new ConcurrentHashMap<>();
     public static Map<String,CountDownLatch> latchMap = new ConcurrentHashMap<>();
     public static String ORDER_KEY = "reqOrders";
+    public static String ACCOUNT_KEY = "reqAccountSummary";
     public static String POSITION_KEY = "reqPositions";
     public static Map<String, Map<Integer,OrderDetail>> orderCache = new ConcurrentHashMap<>();
     public static String ORDER_MAP_KEY = "order_map";
@@ -30,6 +31,7 @@ public class DataCache {
 
     static {
         lockMap.put(ORDER_KEY,new ReentrantLock());
+        lockMap.put(ACCOUNT_KEY,new ReentrantLock());
         KeyUtil keyUtil = BeanUtil.getBean(KeyUtil.class);
         ORDER_MAP_KEY = keyUtil.getKeyWithPrefix(ORDER_MAP_KEY);
         PERM_ID_MAP_KEY = keyUtil.getKeyWithPrefix(PERM_ID_MAP_KEY);
