@@ -1,18 +1,18 @@
 package com.stock.cache;
 
-import com.stock.core.config.PropConfig;
 import com.stock.core.util.BeanUtil;
-import com.stock.vo.*;
+import com.stock.utils.KeyUtil;
+import com.stock.vo.MktData;
+import com.stock.vo.OrderDetail;
+import com.stock.vo.TickerOrderVO;
+import com.stock.vo.TickerVO;
 
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DataCache {
-    public static Map<Integer, MktData> cache = new ConcurrentHashMap<>();
     public static Map<Integer, TickerVO> tickerCache = new ConcurrentHashMap<>();
     public static Map<Integer, TickerOrderVO> tickerOrderCache = new ConcurrentHashMap<>();
     public static int nextOrderId = -1;
@@ -30,10 +30,8 @@ public class DataCache {
 
     static {
         lockMap.put(ORDER_KEY,new ReentrantLock());
-        PropConfig propConfig = BeanUtil.getBean(PropConfig.class);
-        if(propConfig.getEnv().equals("test")){
-            ORDER_MAP_KEY = "test_"+ORDER_MAP_KEY;
-            PERM_ID_MAP_KEY = "test_"+PERM_ID_MAP_KEY;
-        }
+        KeyUtil keyUtil = BeanUtil.getBean(KeyUtil.class);
+        ORDER_MAP_KEY = keyUtil.getKeyWithPrefix(ORDER_MAP_KEY);
+        PERM_ID_MAP_KEY = keyUtil.getKeyWithPrefix(PERM_ID_MAP_KEY);
     }
 }
