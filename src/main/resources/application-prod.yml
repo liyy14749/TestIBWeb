@@ -3,9 +3,9 @@ my:
     switch: false
   ib:
     server:
-      host: 127.0.0.1
-      port: 7496
-      clientId: 998
+      host: 10.0.2.27
+      port: 4002
+      clientId: 90001
 spring:
   redis:
     # Redis数据库索引（默认为0）

@@ -3,20 +3,20 @@ my:
     switch: false
   ib:
     server:
-      host: 127.0.0.1
-      port: 7496
-      clientId: 998
+      host: 10.0.2.27
+      port: 4002
+      clientId: 90001
 spring:
   redis:
     # Redis数据库索引（默认为0）
     database: 7
     # Redis服务器地址
     #host: 172.31.0.100
-    host: 172.31.0.100
+    host: 127.0.0.1
     # Redis服务器连接端口
     port: 6379
     # Redis 密码
-    password: ZNla7cpVu$63e^F^
+    # password: ZNla7cpVu$63e^F^
     jedis:
       pool:
         # 连接池中的最小空闲连接
