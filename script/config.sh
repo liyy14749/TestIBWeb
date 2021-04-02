@@ -28,10 +28,10 @@ ACTIVE="dev"
 CLIENT_ID="9999"
 if [ "$1" == "-prod" ]; then
   ACTIVE="prod"
-  CLIENT_PORT="90001"
+  CLIENT_ID="90001"
 elif [ "$1" == "-pre" ]; then
   ACTIVE="pre"
-  CLIENT_PORT="20001"
+  CLIENT_ID="20001"
 elif [ "$1" == "-test" ]; then
   ACTIVE="test"
 fi
