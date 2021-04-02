@@ -37,4 +37,4 @@ fi
 
 echo "ACTIVE: ${ACTIVE}"
 echo "CLIENT_ID: ${CLIENT_ID}"
-
+echo "CLIENT_ID: ${CLIENT_CONFIG[@]}"
