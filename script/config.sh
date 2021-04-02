@@ -30,7 +30,7 @@ CLIENT_CONFIG=("127.0.0.1:8083")
 if [ "$1" == "-prod" ]; then
   ACTIVE="prod"
   CLIENT_ID="90001"
-  CLIENT_CONFIG=("10.0.2.27:8027" "10.0.2.28:8028" "10.0.2.29:8029")
+  CLIENT_CONFIG=("10.0.2.27:8827" "10.0.2.28:8828" "10.0.2.29:8829")
 elif [ "$1" == "-test" ]; then
   ACTIVE="test"
 fi
