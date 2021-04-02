@@ -26,19 +26,15 @@ fi
 # 启动环境，默认dev
 ACTIVE="dev"
 CLIENT_ID="9999"
+CLIENT_CONFIG=("127.0.0.1:8083")
 if [ "$1" == "-prod" ]; then
   ACTIVE="prod"
   CLIENT_ID="90001"
-elif [ "$1" == "-pre" ]; then
-  ACTIVE="pre"
-  CLIENT_ID="20001"
+  CLIENT_CONFIG=("10.0.2.27:8027" "10.0.2.28:8028" "10.0.2.29:8029")
 elif [ "$1" == "-test" ]; then
   ACTIVE="test"
 fi
 
 echo "ACTIVE: ${ACTIVE}"
 echo "CLIENT_ID: ${CLIENT_ID}"
-
-CLIENT_HOST="10.0.2.27"
-SERVER_PORT=8084
 
