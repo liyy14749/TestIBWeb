@@ -119,4 +119,11 @@ public class DataController {
     public Result reqCompletedOrders(@RequestBody(required = false) OrderStatusReq req) {
         return orderServiceImpl.reqCompletedOrders(req);
     }
+
+    @ApiOperation(value = "serverVersion")
+    @PostMapping("/serverVersion")
+    @LogPoint
+    public Result serverVersion() {
+        return accountServiceImpl.serverVersion();
+    }
 }

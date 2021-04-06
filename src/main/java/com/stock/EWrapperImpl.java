@@ -528,7 +528,7 @@ public class EWrapperImpl implements EWrapper {
 				}
 			}
 			return;
-		} else if(id == -1 && errorCode == 507){
+		} else if(id == -1 && (errorCode == 507 || errorCode == 1300)){
 			DataCache.SERVER_OK = false;
 		}
 		TickerOrderVO ticker = DataCache.tickerOrderCache.get(id);

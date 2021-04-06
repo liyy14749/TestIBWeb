@@ -132,5 +132,12 @@ public class AccountServiceImpl {
         }
         return Result.fail(StatusCode.TIME_OUT,"timeout");
     }
+
+    public Result serverVersion() {
+        Result result = new Result();
+        int version = socketTask.getClientSocket().serverVersion();
+        result.put("version" ,version);
+        return result;
+    }
 }
 
