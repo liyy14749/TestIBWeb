@@ -57,7 +57,11 @@ for i in "${!client_config[@]}"; do
     tmp_client_id=client_id
     for ((j = 0; j < group_num; j++)); do
       tmp_client_id=$((client_id + j))
-      CONFIG[$m]="${active}:${client_config[$i]}:${tmp_client_id}"
+      if [ "${j}" -eq 0 ]; then
+        CONFIG[$m]="${active}:${client_config[$i]}:${tmp_client_id}"
+      else
+        CONFIG[$m]="${active}:${client_config[$i]}${j}:${tmp_client_id}"
+      fi
       echo "CONFIG[${m}]: ${CONFIG[$m]}"
       m=$((m + 1))
     done
