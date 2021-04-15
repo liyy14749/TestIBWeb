@@ -32,7 +32,7 @@ if [ "$1" == "-prod" ]; then
   active="prod"
   group_num=8 # 当前股票分组数量
   client_id="90001"
-  client_config=("10.0.2.27:8827" "10.0.2.28:8828" "10.0.2.29:8829")
+  client_config=("10.0.2.27:8727" "10.0.2.28:8828" "10.0.2.29:8929")
 elif [ "$1" == "-test" ]; then
   active="test"
   group_num=2 # 当前股票分组数量
@@ -49,7 +49,7 @@ m=0
 CONFIG=()
 client_config_len=${#client_config[@]}
 for i in "${!client_config[@]}"; do
-  if [ "${client_config[$i]}" == "10.0.2.27:8827" ]; then
+  if [ "${client_config[$i]}" == "10.0.2.27:8727" ]; then
     CONFIG[$m]="${active}:${client_config[$i]}:${client_id}"
     echo "CONFIG[${m}]: ${CONFIG[$m]}"
     m=$((m + 1))
@@ -60,7 +60,10 @@ for i in "${!client_config[@]}"; do
       if [ "${j}" -eq 0 ]; then
         CONFIG[$m]="${active}:${client_config[$i]}:${tmp_client_id}"
       else
-        CONFIG[$m]="${active}:${client_config[$i]}${j}:${tmp_client_id}"
+        client_host=$(echo ${client_config[$i]} | awk -F ':' '{print $1}')
+        server_port=$(echo ${client_config[$i]} | awk -F ':' '{print $2}')
+        server_port=$((server_port + j))
+        CONFIG[$m]="${active}:${client_host}:${server_port}:${tmp_client_id}"
       fi
       echo "CONFIG[${m}]: ${CONFIG[$m]}"
       m=$((m + 1))
