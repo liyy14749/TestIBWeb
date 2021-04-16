@@ -30,7 +30,7 @@ client_id="9999"
 client_config=("127.0.0.1:8083")
 if [ "$1" == "-prod" ]; then
   active="prod"
-  group_num=8 # 当前股票分组数量
+  group_num=4 # 当前股票分组数量
   client_id="90001"
   client_config=("10.0.2.27:8727" "10.0.2.28:8828" "10.0.2.29:8929")
 elif [ "$1" == "-test" ]; then
