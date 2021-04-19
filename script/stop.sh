@@ -8,7 +8,7 @@ for item in ${CONFIG[@]}; do
   client_id=$(echo ${item} | awk -F ':' '{print $4}')
 
   time_day=$(date "+%Y%m%d")
-  log_path="${PROJECT_CONSOLE_LOG_PATH}/${client_host}/${client_id}/${time_day}"
+  log_path="${PROJECT_CONSOLE_LOG_PATH}/${time_day}/${client_host}/${client_id}"
   if [ ! -d "${log_path}" ]; then
     mkdir -p ${log_path}
   fi
